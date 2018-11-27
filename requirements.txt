@@ -1,4 +1,5 @@
 flask 
+numpy
 flask-socketio 
 eventlet
 timeout-decorator
