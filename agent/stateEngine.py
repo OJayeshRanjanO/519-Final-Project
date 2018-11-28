@@ -79,44 +79,44 @@ class State(object):
 				liquidAsset+=(board[i])['price']/2
 		return liquidAsset 
 
+	def calculateNetWealth(self, sign):
+		same = lambda p: same_sign(sign, p)
+		prop = [(i,abs(p)) for i,p in enumerate(self.properties) if same(p)]
+		val =  sum([lookup.board[i]["price"] for i,p in props if p < 7])
+		val += sum([lookup.board[i]["price"]/2 for i,p in props if p == 7])
+		val += sum([lookup.board[i]["build_cost"]*(p-1) for i,p in props if p < 7])
+		return val
+		
 	def agentNetWealth(self):
-		value = self.agentLiquidCash()
-		for i, p in enumerate(self.properties):
-			propValue = 0
-			if(same_sign(self.agentSign(), p)):
-				propValue += lookup.board[i]["price"]
-				if(abs(p) == 7):
-					propValue /= 2
-				else:
-					propValue += ((abs(p)-1)*lookup.board[i]["build_cost"])
-			value += propValue
-		return value
+		value = self.calculateNetWealth(self.agentSign())
+		return value + self.agentLiquidCash()
 	
 	def opponentNetWealth(self):
-		value = self.opponentLiquidCash()
-		for i, p in enumerate(self.properties):
-						propValue = 0
-						if(same_sign(self.opponentSign(), p)):
-				propValue += lookup.board[i]["price"]
-				if(abs(p) == 7):
-					propValue /= 2
-				else:
-					propValue += ((abs(p)-1)*lookup.board[i]["build_cost"])
-			value += propValue
-		return value
+		value = self.calculateNetWealth(self.opponentSign())
+		return value + self.opponentLiquidCash()
 
 	def agentProperties(self):
-		#valid = lambda p: same_sign(
-		#return [p for p in self.properties if ]
+		valid = lambda p: same_sign(self.agentSign(), p)
+		return [i for i, p in enumerate(self.properties) if valid(p)]
 
 	def opponentProperties(self):
-		pass
+		valid = lambda p: same_sign(self.opponentSign(), p)
+		return [i for i, p in enumerate(self.properties) if valid(p)]
+
+	def calculateMonopolies(self, properties):
+		monopolies = {}
+		for p in properties:
+			group = lookup.board[p]["monopoly"]
+			if(not group in monopolies):
+				monopolies[group] = [0, lookup.board[p]["monopoly_size"]]
+			monopolies[group][0] += 1
+		return sum([1 for k in monopolies if monopolies[k][0] == monopolies[k][1]])
 
 	def agentMonopolies(self):
-		pass
+		return self.calculateMonopolies(self.agentProperties)
 
 	def opponentMonopolies(self):
-		pass
+		return self.calculateMonopolies(self.opponentProperties)
 
 	## DERIVED FEATURES ABOUT THE GAME
 
