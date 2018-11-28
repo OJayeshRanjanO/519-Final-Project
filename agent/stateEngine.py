@@ -3,9 +3,6 @@ from lookup import board
 
 
 
-
-
-
 def same_sign(x, y):
 	return (x < 0 and y < 0) or (x > 0 and y > 0)
 
@@ -68,25 +65,26 @@ class State(object):
 
 	## DERIVED FEATURES ABOUT PLAYERS
 	def agentLiquidAsset(self):
-		return calculateLiquidAsset(self.agentSign())
+		return self.calculateLiquidAsset(self.agentSign())
 
 	
 	def opponentLiquidAsset(self):
-		return calculateLiquidAsset(self.opponentSign())
+		return self.calculateLiquidAsset(self.opponentSign())
 
 	def calculateLiquidAsset(self,sign):#1 or -1
 		liquidAsset = 0
 		if sign == 1:
 			for i in range(len(self.state[1])):
-				if 1 < self.state[i] < 7:#Player 1# i = 2 - 6
-					liquidAsset+= ((board[i])['build_cost'] * (self.state[i] -1))/2 + ((board[i])['price'])/2
-				elif self.state[i] == 1:
+				if 1 < self.state[1][i] < 7:#Player 1# i = 2 - 6
+					liquidAsset+= ((board[i])['build_cost'] * (self.state[1][i] -1))/2 + ((board[i])['price'])/2
+				elif self.state[1][i] == 1:
 					liquidAsset+=(board[i])['price']/2
 		else:
-			if -7 < self.state[i] < -1:#Player 2# i = -2 - -6
-				liquidAsset+= ((board[i])['build_cost'] * ((self.state[i] +1) * -1))/2 + ((board[i])['price'])/2
-			elif self.state[i] == -1:
-				liquidAsset+=(board[i])['price']/2			
+			for i in range(len(self.state[1])):
+				if -7 < self.state[1][i] < -1:#Player 2# i = -2 - -6
+					liquidAsset+= ((board[i])['build_cost'] * ((self.state[1][i] +1) * -1))/2 + ((board[i])['price'])/2
+				elif self.state[1][i] == -1:
+					liquidAsset+=(board[i])['price']/2			
 		return liquidAsset
 
 	def calculateNetWealth(self, sign):
