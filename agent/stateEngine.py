@@ -90,9 +90,9 @@ class State(object):
 	def calculateNetWealth(self, sign):
 		same = lambda p: same_sign(sign, p)
 		prop = [(i,abs(p)) for i,p in enumerate(self.properties) if same(p)]
-		val =  sum([lookup.board[i]["price"] for i,p in props if p < 7])
-		val += sum([lookup.board[i]["price"]/2 for i,p in props if p == 7])
-		val += sum([lookup.board[i]["build_cost"]*(p-1) for i,p in props if p < 7])
+		val =  sum([board[i]["price"] for i,p in props if p < 7])
+		val += sum([board[i]["price"]/2 for i,p in props if p == 7])
+		val += sum([board[i]["build_cost"]*(p-1) for i,p in props if p < 7])
 		return val
 		
 	def agentNetWealth(self):
@@ -114,9 +114,9 @@ class State(object):
 	def calculateMonopolies(self, properties):
 		monopolies = {}
 		for p in properties:
-			group = lookup.board[p]["monopoly"]
+			group = board[p]["monopoly"]
 			if(not group in monopolies):
-				monopolies[group] = [0, lookup.board[p]["monopoly_size"]]
+				monopolies[group] = [0, board[p]["monopoly_size"]]
 			monopolies[group][0] += 1
 		return sum([1 for k in monopolies if monopolies[k][0] == monopolies[k][1]])
 
