@@ -75,16 +75,16 @@ class State(object):
 
 
 	## DERIVED FEATURES ABOUT THE GAME
-	def numHomesLeft(self):
+	def homesLeft(self):
 		pass
 
-	def numHomesUsed(self):
+	def homesUsed(self):
 		pass
 
-	def numHotelsLeft(self):
+	def hotelsLeft(self):
 		pass 
 
-	def numHotelsUsed(self):
+	def hotelsUsed(self):
 		pass
 
 	def totalLiquidCash(self):
