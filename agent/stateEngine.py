@@ -43,10 +43,10 @@ class State(object):
 		return self.state[6]
 
 	def agentDebt(self):
-		self.debt()[(2*self.agentIndex()) + 1]
+		return self.debt()[(2*self.agentIndex()) + 1]
 
 	def opponentDebt(self):
-		self.debt()[(self.opponentIndex()) + 1]
+		return self.debt()[(self.opponentIndex()) + 1]
 
 	## DERIVED FEATURES ABOUT PLAYERS
 	def agentLiquidAsset(self):
@@ -55,7 +55,23 @@ class State(object):
 	def opponentLiquidAsset(self):
 		pass
 
-	def 
+	def agentNetWealth(self):
+		pass
+	
+	def opponentNetWealth(self):
+		pass
+
+	def agentProperties(self):
+		pass
+
+	def opponentProperties(self):
+		pass
+
+	def agentMonopolies(self):
+		pass
+
+	def opponentMonopolies(self):
+		pass
 
 
 	## DERIVED FEATURES ABOUT THE GAME
