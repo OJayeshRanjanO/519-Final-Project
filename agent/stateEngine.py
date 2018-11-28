@@ -43,35 +43,32 @@ class State(object):
 		return self.state[6]
 
 	def agentDebt(self):
-		return self.debt()[(2*self.agentIndex()) + 1]
+		self.debt()[(2*self.agentIndex()) + 1]
 
 	def opponentDebt(self):
-		return self.debt()[(self.opponentIndex()) + 1]
+		self.debt()[(self.opponentIndex()) + 1]
 
+
+#    1, (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
+#(11, 0), (1360, 1500), 2, (5, 4, False), (0, 0, 0, 0)
 	## DERIVED FEATURES ABOUT PLAYERS
 	def agentLiquidAsset(self):
-		pass
+		liquidAsset = 0
+		for i in range(len(self.state[1])):
+			if 1 < self.state[i] < 7:#Player 1# i = 2 - 6
+				liquidAsset+= ((board[i])['build_cost'] * (self.state[i] -1))/2 + ((board[i])['price'])/2
+			elif self.state[i] == 1:
+				liquidAsset+=(board[i])['price']/2
+		return liquidAsset
 	
 	def opponentLiquidAsset(self):
-		pass
-
-	def agentNetWealth(self):
-		pass
-	
-	def opponentNetWealth(self):
-		pass
-
-	def agentProperties(self):
-		pass
-
-	def opponentProperties(self):
-		pass
-
-	def agentMonopolies(self):
-		pass
-
-	def opponentMonopolies(self):
-		pass
+		liquidAsset = 0
+		for i in range(len(self.state[1])):
+			if -7 < self.state[i] < -1:#Player 2# i = -2 - -6
+				liquidAsset+= ((board[i])['build_cost'] * ((self.state[i] +1) * -1))/2 + ((board[i])['price'])/2
+			elif self.state[i] == -1:
+				liquidAsset+=(board[i])['price']/2
+		return liquidAsset 
 
 
 	## DERIVED FEATURES ABOUT THE GAME
