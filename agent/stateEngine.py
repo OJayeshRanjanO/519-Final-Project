@@ -62,22 +62,26 @@ class State(object):
 
 	## DERIVED FEATURES ABOUT PLAYERS
 	def agentLiquidAsset(self):
-		liquidAsset = 0
-		for i in range(len(self.state[1])):
-			if 1 < self.state[i] < 7:#Player 1# i = 2 - 6
-				liquidAsset+= ((board[i])['build_cost'] * (self.state[i] -1))/2 + ((board[i])['price'])/2
-			elif self.state[i] == 1:
-				liquidAsset+=(board[i])['price']/2
-		return liquidAsset
+		return calculateLiquidAsset(self.agentSign())
+
 	
 	def opponentLiquidAsset(self):
+		return calculateLiquidAsset(self.opponentSign())
+
+	def calculateLiquidAsset(self,sign):#1 or -1
 		liquidAsset = 0
-		for i in range(len(self.state[1])):
+		if sign == 1:
+			for i in range(len(self.state[1])):
+				if 1 < self.state[i] < 7:#Player 1# i = 2 - 6
+					liquidAsset+= ((board[i])['build_cost'] * (self.state[i] -1))/2 + ((board[i])['price'])/2
+				elif self.state[i] == 1:
+					liquidAsset+=(board[i])['price']/2
+		else:
 			if -7 < self.state[i] < -1:#Player 2# i = -2 - -6
 				liquidAsset+= ((board[i])['build_cost'] * ((self.state[i] +1) * -1))/2 + ((board[i])['price'])/2
 			elif self.state[i] == -1:
-				liquidAsset+=(board[i])['price']/2
-		return liquidAsset 
+				liquidAsset+=(board[i])['price']/2			
+		return liquidAsset
 
 	def agentNetWealth(self):
 		value = self.agentLiquidCash()
@@ -143,10 +147,10 @@ class State(object):
 		return sum([1 for p in self.properties() if valid(p)])
 
 	def totalLiquidCash(self):
-		pass
+		return self.agentLiquidCash() + self.opponentLiquidCash()
 
 	def totalLiquidAssets(self):
-		pass
+		return  self.agentLiquidAsset() + self.opponentLiquidAsset()
 
 	def totalWealth(self):
-		pass
+		return self.agentNetWealth() + self.opponentNetWealth()
