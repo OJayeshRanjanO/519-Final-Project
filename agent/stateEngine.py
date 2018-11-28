@@ -1,4 +1,8 @@
 import lookup
+
+def same_sign(x, y):
+	return (x < 0 and y < 0) or (x > 0 and y > 0)
+
 class State(object):
 	def __init__(self, iden, state):
 		self.state = state[:-1]
@@ -48,6 +52,9 @@ class State(object):
 	def opponentDebt(self):
 		return self.debt()[(self.opponentIndex()) + 1]
 
+	def properties(self):
+		return self.state[1][:-2]
+
 	## DERIVED FEATURES ABOUT PLAYERS
 	def agentLiquidAsset(self):
 		pass
@@ -56,13 +63,34 @@ class State(object):
 		pass
 
 	def agentNetWealth(self):
-		pass
+		value = self.agentLiquidCash()
+		for i, p in enumerate(self.properties):
+			propValue = 0
+			if(same_sign(self.agentSign(), p)):
+				propValue += lookup.board[i]["price"]
+				if(abs(p) == 7):
+					propValue /= 2
+				else:
+					propValue += ((abs(p)-1)*lookup.board[i]["build_cost"])
+			value += propValue
+		return value
 	
 	def opponentNetWealth(self):
-		pass
+		value = self.opponentLiquidCash()
+		for i, p in enumerate(self.properties):
+			propValue = 0
+			if(same_sign(self.opponentSign(), p)):
+				propValue += lookup.board[i]["price"]
+				if(abs(p) == 7):
+					propValue /= 2
+				else:
+					propValue += ((abs(p)-1)*lookup.board[i]["build_cost"])
+			value += propValue
+		return value
 
 	def agentProperties(self):
-		pass
+		#valid = lambda p: same_sign(
+		#return [p for p in self.properties if ]
 
 	def opponentProperties(self):
 		pass
@@ -75,17 +103,28 @@ class State(object):
 
 
 	## DERIVED FEATURES ABOUT THE GAME
-	def homesLeft(self):
-		pass
 
-	def homesUsed(self):
-		pass
+	def housesUsed(self):
+		valid = lambda h: abs(h) > 1 and abs(h) < 6
+		return sum([abs(h)-1 for h in self.properties() if valid(h)])
 
-	def hotelsLeft(self):
-		pass 
+	def housesLeft(self):
+		return 32 - self.housesUsed()
 
 	def hotelsUsed(self):
-		pass
+		valid = lambda h: abs(h) == 6
+		return sum([1 for h in self.properties() if valid(h)])
+
+	def hotelsLeft(self):
+		return 12 - self.hotelsUsed()
+
+	def propertiesOwned(self):
+		valid = lambda p: abs(p) != 0
+		return sum([1 for p in self.properties() if valid(p)])
+
+	def propertiesMortgaged(self):
+		valid = lambda p: abs(p) == 7
+		return sum([1 for p in self.properties() if valid(p)])
 
 	def totalLiquidCash(self):
 		pass
