@@ -1,4 +1,4 @@
-
+import lookup
 class State(object):
 	def __init__(self, iden, state):
 		self.state = state[:-1]
