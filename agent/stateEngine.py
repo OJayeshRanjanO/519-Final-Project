@@ -1,4 +1,4 @@
-from lookup import board
+from agent.lookup import board
 
 def same_sign(x, y):
 	return (x < 0 and y < 0) or (x > 0 and y > 0)

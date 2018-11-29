@@ -15,7 +15,7 @@ class Agent(object):
 			except:
 				pass
 
-		return None
+		return True
 
 	def respondTrade(self, state):
 		return False
