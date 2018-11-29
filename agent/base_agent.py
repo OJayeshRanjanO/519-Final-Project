@@ -1,5 +1,5 @@
 import pdb
-from stateEngine import *
+from agent.stateEngine import *
 import random
 class Agent(object):
 	def __init__(self, id):
@@ -35,7 +35,7 @@ class Agent(object):
 		s = State(self.id,state)
 		if s.agentGetOutOfJail() != 0:
 			return ("C",s.agentGetOutOfJail())
-		if s.opponentProperties()/28 > 0.25: #If 50% owned by opponent
+		if len(s.opponentProperties())/28 > 0.25: #If 50% owned by opponent
 			return ("R")#Simply roll or wait
 		if s.agentLiquidCash() >= 50:
 			return ("C")
