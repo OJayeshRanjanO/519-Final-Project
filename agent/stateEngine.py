@@ -1,6 +1,5 @@
 from lookup import board
 
-
 def same_sign(x, y):
 	return (x < 0 and y < 0) or (x > 0 and y > 0)
 
@@ -57,11 +56,8 @@ class State(object):
 		return self.state[1][:-2]
 
 
-#    1, (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
-#(11, 0), (1360, 1500), 2, (5, 4, False), (0, 0, 0, 0)
-
-
 	## DERIVED FEATURES ABOUT PLAYERS
+
 	def agentLiquidAsset(self):
 		return self.calculateLiquidAsset(self.agentSign())
 
