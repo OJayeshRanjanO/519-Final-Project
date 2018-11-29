@@ -55,6 +55,20 @@ class State(object):
 	def properties(self):
 		return self.state[1][:-2]
 
+	def jailCards(self):
+		return self.state[1][-2:]
+
+	def calculateJailCards(self, sign):
+		valid = lambda c: same_sign(c, sign)
+		return [abs(i) for i, c in enumerate(self.jailCards()) if valid(c)]
+
+	def agentJailCards(self):
+		cards = self.calculateJailCards(self.agentSign())
+		return 40 + cards[0] if cards else None
+
+	def opponentJailCards(self):
+		cards = self.calculateJailCards(self.opponentSign())
+		return 40 + cards[0] if cards else None
 
 	## DERIVED FEATURES ABOUT PLAYERS
 
@@ -143,14 +157,7 @@ class State(object):
 	def totalWealth(self):
 		return self.agentNetWealth() + self.opponentNetWealth()
 
-	def agentGetOutOfJail(self):
-		if (self.agentSign() == self.state[1][-2]):
-			return 40
-		elif (self.agentSign() == self.state[1][-1]):
-			return 41
-		else:
-			return 0
-		
+	## INFO ABOUT PHASE INFORMATIO
 
 	def getPhaseInfo(self):
 		if self.state[4] == 3:#Buying Property
