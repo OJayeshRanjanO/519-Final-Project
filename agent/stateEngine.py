@@ -67,25 +67,15 @@ class State(object):
 	def agentLiquidAsset(self):
 		return self.calculateLiquidAsset(self.agentSign())
 
-	
 	def opponentLiquidAsset(self):
 		return self.calculateLiquidAsset(self.opponentSign())
 
-	def calculateLiquidAsset(self,sign):#1 or -1
-		liquidAsset = 0
-		if sign == 1:
-			for i in range(len(self.state[1])):
-				if 1 < self.state[1][i] < 7:#Player 1# i = 2 - 6
-					liquidAsset+= ((board[i])['build_cost'] * (self.state[1][i] -1))/2 + ((board[i])['price'])/2
-				elif self.state[1][i] == 1:
-					liquidAsset+=(board[i])['price']/2
-		else:
-			for i in range(len(self.state[1])):
-				if -7 < self.state[1][i] < -1:#Player 2# i = -2 - -6
-					liquidAsset+= ((board[i])['build_cost'] * ((self.state[1][i] +1) * -1))/2 + ((board[i])['price'])/2
-				elif self.state[1][i] == -1:
-					liquidAsset+=(board[i])['price']/2			
-		return liquidAsset
+	def calculateLiquidAsset(self,sign):
+		same = lambda p: same_sign(sign, p)
+		props = [(i,abs(p)) for i,p in enumerate(self.properties()) if same(p)]
+		val =  sum([board[i]["price"]/2 for i,p in props if p < 7])
+		val += sum([(board[i]["build_cost"]/2)*(p-1) for i,p in props if p < 7])
+		return val
 
 	def calculateNetWealth(self, sign):
 		same = lambda p: same_sign(sign, p)
@@ -105,11 +95,11 @@ class State(object):
 
 	def agentProperties(self):
 		valid = lambda p: same_sign(self.agentSign(), p)
-		return [i for i, p in enumerate(self.properties) if valid(p)]
+		return [i for i, p in enumerate(self.properties()) if valid(p)]
 
 	def opponentProperties(self):
 		valid = lambda p: same_sign(self.opponentSign(), p)
-		return [i for i, p in enumerate(self.properties) if valid(p)]
+		return [i for i, p in enumerate(self.properties()) if valid(p)]
 
 	def calculateMonopolies(self, properties):
 		monopolies = {}
@@ -121,10 +111,10 @@ class State(object):
 		return sum([1 for k in monopolies if monopolies[k][0] == monopolies[k][1]])
 
 	def agentMonopolies(self):
-		return self.calculateMonopolies(self.agentProperties)
+		return self.calculateMonopolies(self.agentProperties())
 
 	def opponentMonopolies(self):
-		return self.calculateMonopolies(self.opponentProperties)
+		return self.calculateMonopolies(self.opponentProperties())
 
 	## DERIVED FEATURES ABOUT THE GAME
 
