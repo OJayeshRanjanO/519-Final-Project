@@ -1,19 +1,30 @@
 import pdb
 from agent.stateEngine import *
 import random
+
 class Agent(object):
-	def __init__(self, id):
+:q	def __init__(self, id):
 		self.id = id
 
 	def getBMSTDecision(self, state):
 		s = State(self.id,state)
-		if s.agentLiquidCash() < s.agentDebt():#PAY OFF ALL DEBT
-			try:
-				for i in s.agentProperties():
-					if abs(i) == 1:
-						return ("B",[i])
-			except:
-				pass
+		debt = s.agentLiquidCash() - s.agentDebt()
+
+		if(debt < 0):
+			buyOff = []
+			for prop in s.agentProperties():
+				if(debt > 0):
+					break
+
+				v = abs(s.properties()[prop])
+				p = board[prop]["price"]//2
+				if(v == 1):
+					buyOff.append(prop)
+					debt += p
+
+			if(buyOff):
+				return ("M", buyOff)
+		
 
 		return True
 
