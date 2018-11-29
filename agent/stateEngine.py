@@ -54,7 +54,7 @@ class State(object):
 
 	def properties(self):
 		return self.state[1][:-2]
-
+N
 	def jailCards(self):
 		return self.state[1][-2:]
 
@@ -64,11 +64,11 @@ class State(object):
 
 	def agentJailCards(self):
 		cards = self.calculateJailCards(self.agentSign())
-		return 40 + cards[0] if cards else None
+		return 40 + cards[0] if cards else 0
 
 	def opponentJailCards(self):
 		cards = self.calculateJailCards(self.opponentSign())
-		return 40 + cards[0] if cards else None
+		return 40 + cards[0] if cards else 0
 
 	## DERIVED FEATURES ABOUT PLAYERS
 
