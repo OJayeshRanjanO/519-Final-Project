@@ -54,7 +54,7 @@ class State(object):
 
 	def properties(self):
 		return self.state[1][:-2]
-N
+
 	def jailCards(self):
 		return self.state[1][-2:]
 
