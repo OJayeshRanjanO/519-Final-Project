@@ -1,8 +1,6 @@
 from lookup import board
 
 
-
-
 def same_sign(x, y):
 	return (x < 0 and y < 0) or (x > 0 and y > 0)
 
@@ -148,3 +146,20 @@ class State(object):
 
 	def totalWealth(self):
 		return self.agentNetWealth() + self.opponentNetWealth()
+
+	def agentGetOutOfJail(self):
+		if (self.agentSign() == self.state[1][-2]):
+			return 40
+		elif (self.agentSign() == self.state[1][-1]):
+			return 41
+		else:
+			return 0
+		
+
+	def getPhaseInfo(self):
+		if self.state[4] == 3:#Buying Property
+			return board[self.state[5][0]]['price']
+		if self.state[4] == 4:#Auction
+			return board[self.state[5][0]]['price']
+		if self.state[4] == 6:#Jail
+			return self.state[5]
