@@ -17,10 +17,10 @@ class State(object):
 		return self.state[0]
 
 	def agentIndex(self):
-		return self.iden % 2
+		return self.iden - 1 
 	
 	def opponentIndex(self):
-		return (self.iden + 1) % 2
+		return (self.agentIndex() + 1) % 2
 
 	def agentSign(self):
 		return (-1)**(self.agentIndex())
@@ -50,10 +50,10 @@ class State(object):
 		return self.state[6]
 
 	def agentDebt(self):
-		self.debt()[(2*self.agentIndex()) + 1]
+		return self.debt()[(2*self.agentIndex()) + 1]
 
 	def opponentDebt(self):
-		self.debt()[(self.opponentIndex()) + 1]
+		return self.debt()[(self.opponentIndex()) + 1]
 
 	def properties(self):
 		return self.state[1][:-2]
@@ -89,7 +89,7 @@ class State(object):
 
 	def calculateNetWealth(self, sign):
 		same = lambda p: same_sign(sign, p)
-		prop = [(i,abs(p)) for i,p in enumerate(self.properties) if same(p)]
+		props = [(i,abs(p)) for i,p in enumerate(self.properties()) if same(p)]
 		val =  sum([board[i]["price"] for i,p in props if p < 7])
 		val += sum([board[i]["price"]/2 for i,p in props if p == 7])
 		val += sum([board[i]["build_cost"]*(p-1) for i,p in props if p < 7])
