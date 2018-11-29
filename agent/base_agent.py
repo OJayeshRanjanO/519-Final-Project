@@ -22,19 +22,19 @@ class Agent(object):
 
 	def buyProperty(self, state):
 		s = State(self.id,state)
-		if s.getPhaseInfo() <= s.agentLiquidCash():
+		if s.getPhaseInfo() <= s.agentLiquidCash()*0.5:
 			return True
 		return False
 
 	def auctionProperty(self, state):
 		s = State(self.id,state)
-		print(state)
+		# print(state)
 		return random.randrange(0,s.getPhaseInfo())
 
 	def jailDecision(self, state):
 		s = State(self.id,state)
-		if s.agentGetOutOfJail() != 0:
-			return ("C",s.agentGetOutOfJail())
+		if s.agentJailCards() != 0:
+			return ("C",s.agentJailCards())
 		if len(s.opponentProperties())/28 > 0.25: #If 50% owned by opponent
 			return ("R")#Simply roll or wait
 		if s.agentLiquidCash() >= 50:
@@ -43,5 +43,5 @@ class Agent(object):
 			return ("R")
 	
 	def receiveState(self, state):
-		print(state)
+		# print(state)
 		return None
