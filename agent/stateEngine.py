@@ -41,10 +41,10 @@ class State(object):
 		return self.state[3]
 
 	def agentLiquidCash(self):
-		return self.cash()[self.agentIndex()]
+		return self.liquidCash()[self.agentIndex()]
 
 	def opponentLiquidCash(self):
-		return self.cash()[self.opponentIndex()]
+		return self.liquidCash()[self.opponentIndex()]
 
 	def debt(self):
 		return self.state[6]
