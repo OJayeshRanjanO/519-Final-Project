@@ -3,7 +3,7 @@ from agent.stateEngine import *
 import random
 
 class Agent(object):
-:q	def __init__(self, id):
+	def __init__(self, id):
 		self.id = id
 
 	def getBMSTDecision(self, state):
