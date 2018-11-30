@@ -13,7 +13,6 @@ sdist
 develop-eggs
 .installed.cfg
 __pycache__
-*.ipynb
 *.log
 board.csv
 diff.txt

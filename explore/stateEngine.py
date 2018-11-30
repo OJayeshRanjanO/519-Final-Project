@@ -195,7 +195,7 @@ class State(object):
             return board[self.state[5][0]]['price']
         if self.state[4] == 6:  # Jail
             return self.state[5]
-
+    
     ## FUNCTION TO CALL ALL INFORMATION IN ONE SHOT AS AN ARRAY
     def extract_features(self):
         output =  [self.agentNetWealth(), self.opponentNetWealth()]
