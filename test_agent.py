@@ -1,5 +1,6 @@
 from agent.stateEngine import *
 from agent.base_agent import *
+from agent.flagship_agent import *
 
 if __name__ == '__main__':
 
