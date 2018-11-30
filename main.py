@@ -9,7 +9,7 @@ def getAgent():
 	ind = random.randint(0, len(agents)-1)
 	return agents[ind]
 
-amount = 10
+amount = 1
 adj = Adjudicator()
 for i in range(amount):
 	a1, a2 = getAgent(), getAgent()
@@ -17,6 +17,13 @@ for i in range(amount):
 		for k in range(2):
 			adj.runGame(a1(k%2), a2((k+1)%2))
 
+header = ["turn"]
+header += ["property_%d" % i for i in range(1, 41)]
+header += ["jail_card_%d" % i for i in range(1, 3)]
+header += ["agent_position_%d" % i for i in range(1, 3)]
+header += ["agent_cash_%d" % i for i in range(1, 3)]
+header += ["agent_%d_owed, agent_%d_debt"%(i,i) for i in range(1, 3)]
+header =  ", ".join(header) + "\n"
 
 with open("monopoly.log", "r") as fp:
 	lines = fp.readlines()
@@ -29,4 +36,5 @@ with open("monopoly.log", "r") as fp:
 	state = [json.dumps(s)[1:][:-1] for s in state]
 	state = "\n".join(state)
 	with open("output.csv", "w") as wr:
+		wr.write(header)
 		wr.write(state)
