@@ -1,168 +1,191 @@
 from agent.lookup import board
 
+
 def same_sign(x, y):
-	return (x < 0 and y < 0) or (x > 0 and y > 0)
+    return (x < 0 and y < 0) or (x > 0 and y > 0)
+
 
 class State(object):
-	def __init__(self, iden, state):
-		self.state = state[:-1]
-		self.iden = iden
+    def __init__(self, iden, state):
+        self.state = state[:-1]
+        self.iden = iden
+        self.monopolies = {
+            0: [1, 3], 1: [6, 8, 9], 2: [11, 13, 14], 3: [16, 18, 19], 4: [21, 23, 24], 5: [26, 27, 29],
+            6: [31, 32, 34], 7: [37, 39], 8: [5, 15, 25, 35], 9: [12, 28]
+        }
 
-	## BASE VALUES EXTRACTED FROM STATE
+    def getAgentMonopolies(self):
+        monopolies = {}
+        for i in self.monopolies:
+            if set(self.monopolies[i]) < set(self.agentProperties()):
+                monopolies[i] = {}
+                for j in self.monopolies[i]:
+                    (monopolies[i])[j] = (self.properties())[j]
+        return monopolies
 
-	def currentTurnNumber(self):
-		return self.state[0]
+    def getOpponentMonopolies(self):
+        monopolies = {}
+        for i in self.monopolies:
+            if set(self.monopolies[i]) < set(self.opponentProperties()):
+                monopolies[i] = {}
+                for j in self.monopolies[i]:
+                    (monopolies[i])[j] = (self.properties())[j]
+        return monopolies
 
-	def agentIndex(self):
-		return self.iden - 1 
-	
-	def opponentIndex(self):
-		return (self.agentIndex() + 1) % 2
+    ## BASE VALUES EXTRACTED FROM STATE
 
-	def agentSign(self):
-		return (-1)**(self.agentIndex())
+    def currentTurnNumber(self):
+        return self.state[0]
 
-	def opponentSign(self):
-		return (-1)**(self.opponentIndex())
+    def agentIndex(self):
+        return self.iden - 1
 
-	def positions(self):
-		return self.state[2]
-	
-	def agentPosition(self):
-		return self.positions()[self.agentIndex()]
-	
-	def opponentPosition(self):
-		return self.positions()[self.opponentIndex()]
+    def opponentIndex(self):
+        return (self.agentIndex() + 1) % 2
 
-	def liquidCash(self):
-		return self.state[3]
+    def agentSign(self):
+        return (-1) ** (self.agentIndex())
 
-	def agentLiquidCash(self):
-		return self.liquidCash()[self.agentIndex()]
+    def opponentSign(self):
+        return (-1) ** (self.opponentIndex())
 
-	def opponentLiquidCash(self):
-		return self.liquidCash()[self.opponentIndex()]
+    def positions(self):
+        return self.state[2]
 
-	def debt(self):
-		return self.state[6]
+    def agentPosition(self):
+        return self.positions()[self.agentIndex()]
 
-	def agentDebt(self):
-		return self.debt()[(2*self.agentIndex()) + 1]
+    def opponentPosition(self):
+        return self.positions()[self.opponentIndex()]
 
-	def opponentDebt(self):
-		return self.debt()[(self.opponentIndex()) + 1]
+    def liquidCash(self):
+        return self.state[3]
 
-	def properties(self):
-		return self.state[1][:-2]
+    def agentLiquidCash(self):
+        return self.liquidCash()[self.agentIndex()]
 
-	def jailCards(self):
-		return self.state[1][-2:]
+    def opponentLiquidCash(self):
+        return self.liquidCash()[self.opponentIndex()]
 
-	def calculateJailCards(self, sign):
-		valid = lambda c: same_sign(c, sign)
-		return [abs(i) for i, c in enumerate(self.jailCards()) if valid(c)]
+    def debt(self):
+        return self.state[6]
 
-	def agentJailCards(self):
-		cards = self.calculateJailCards(self.agentSign())
-		return 40 + cards[0] if cards else 0
+    def agentDebt(self):
+        return self.debt()[(2 * self.agentIndex()) + 1]
 
-	def opponentJailCards(self):
-		cards = self.calculateJailCards(self.opponentSign())
-		return 40 + cards[0] if cards else 0
+    def opponentDebt(self):
+        return self.debt()[(self.opponentIndex()) + 1]
 
-	## DERIVED FEATURES ABOUT PLAYERS
+    def properties(self):
+        return self.state[1][:-2]
 
-	def agentLiquidAsset(self):
-		return self.calculateLiquidAsset(self.agentSign())
+    def jailCards(self):
+        return self.state[1][-2:]
 
-	def opponentLiquidAsset(self):
-		return self.calculateLiquidAsset(self.opponentSign())
+    def calculateJailCards(self, sign):
+        valid = lambda c: same_sign(c, sign)
+        return [abs(i) for i, c in enumerate(self.jailCards()) if valid(c)]
 
-	def calculateLiquidAsset(self,sign):
-		same = lambda p: same_sign(sign, p)
-		props = [(i,abs(p)) for i,p in enumerate(self.properties()) if same(p)]
-		val =  sum([board[i]["price"]/2 for i,p in props if p < 7])
-		val += sum([(board[i]["build_cost"]/2)*(p-1) for i,p in props if p < 7])
-		return val
+    def agentJailCards(self):
+        cards = self.calculateJailCards(self.agentSign())
+        return 40 + cards[0] if cards else 0
 
-	def calculateNetWealth(self, sign):
-		same = lambda p: same_sign(sign, p)
-		props = [(i,abs(p)) for i,p in enumerate(self.properties()) if same(p)]
-		val =  sum([board[i]["price"] for i,p in props if p < 7])
-		val += sum([board[i]["price"]/2 for i,p in props if p == 7])
-		val += sum([board[i]["build_cost"]*(p-1) for i,p in props if p < 7])
-		return val
-		
-	def agentNetWealth(self):
-		value = self.calculateNetWealth(self.agentSign())
-		return value + self.agentLiquidCash()
-	
-	def opponentNetWealth(self):
-		value = self.calculateNetWealth(self.opponentSign())
-		return value + self.opponentLiquidCash()
+    def opponentJailCards(self):
+        cards = self.calculateJailCards(self.opponentSign())
+        return 40 + cards[0] if cards else 0
 
-	def agentProperties(self):
-		valid = lambda p: same_sign(self.agentSign(), p)
-		return [i for i, p in enumerate(self.properties()) if valid(p)]
+    ## DERIVED FEATURES ABOUT PLAYERS
 
-	def opponentProperties(self):
-		valid = lambda p: same_sign(self.opponentSign(), p)
-		return [i for i, p in enumerate(self.properties()) if valid(p)]
+    def agentLiquidAsset(self):
+        return self.calculateLiquidAsset(self.agentSign())
 
-	def calculateMonopolies(self, properties):
-		monopolies = {}
-		for p in properties:
-			group = board[p]["monopoly"]
-			if(not group in monopolies):
-				monopolies[group] = [0, board[p]["monopoly_size"]]
-			monopolies[group][0] += 1
-		return sum([1 for k in monopolies if monopolies[k][0] == monopolies[k][1]])
+    def opponentLiquidAsset(self):
+        return self.calculateLiquidAsset(self.opponentSign())
 
-	def agentMonopolies(self):
-		return self.calculateMonopolies(self.agentProperties())
+    def calculateLiquidAsset(self, sign):
+        same = lambda p: same_sign(sign, p)
+        props = [(i, abs(p)) for i, p in enumerate(self.properties()) if same(p)]
+        val = sum([board[i]["price"] / 2 for i, p in props if p < 7])
+        val += sum([(board[i]["build_cost"] / 2) * (p - 1) for i, p in props if p < 7])
+        return val
 
-	def opponentMonopolies(self):
-		return self.calculateMonopolies(self.opponentProperties())
+    def calculateNetWealth(self, sign):
+        same = lambda p: same_sign(sign, p)
+        props = [(i, abs(p)) for i, p in enumerate(self.properties()) if same(p)]
+        val = sum([board[i]["price"] for i, p in props if p < 7])
+        val += sum([board[i]["price"] / 2 for i, p in props if p == 7])
+        val += sum([board[i]["build_cost"] * (p - 1) for i, p in props if p < 7])
+        return val
 
-	## DERIVED FEATURES ABOUT THE GAME
+    def agentNetWealth(self):
+        value = self.calculateNetWealth(self.agentSign())
+        return value + self.agentLiquidCash()
 
-	def housesUsed(self):
-		valid = lambda h: abs(h) > 1 and abs(h) < 6
-		return sum([abs(h)-1 for h in self.properties() if valid(h)])
+    def opponentNetWealth(self):
+        value = self.calculateNetWealth(self.opponentSign())
+        return value + self.opponentLiquidCash()
 
-	def housesLeft(self):
-		return 32 - self.housesUsed()
+    def agentProperties(self):
+        valid = lambda p: same_sign(self.agentSign(), p)
+        return [i for i, p in enumerate(self.properties()) if valid(p)]
 
-	def hotelsUsed(self):
-		valid = lambda h: abs(h) == 6
-		return sum([1 for h in self.properties() if valid(h)])
+    def opponentProperties(self):
+        valid = lambda p: same_sign(self.opponentSign(), p)
+        return [i for i, p in enumerate(self.properties()) if valid(p)]
 
-	def hotelsLeft(self):
-		return 12 - self.hotelsUsed()
+    def calculateMonopolies(self, properties):
+        monopolies = {}
+        for p in properties:
+            group = board[p]["monopoly"]
+            if (not group in monopolies):
+                monopolies[group] = [0, board[p]["monopoly_size"]]
+            monopolies[group][0] += 1
+        return sum([1 for k in monopolies if monopolies[k][0] == monopolies[k][1]])
 
-	def propertiesOwned(self):
-		valid = lambda p: abs(p) != 0
-		return sum([1 for p in self.properties() if valid(p)])
+    def agentMonopolies(self):
+        return self.calculateMonopolies(self.agentProperties())
 
-	def propertiesMortgaged(self):
-		valid = lambda p: abs(p) == 7
-		return sum([1 for p in self.properties() if valid(p)])
+    def opponentMonopolies(self):
+        return self.calculateMonopolies(self.opponentProperties())
 
-	def totalLiquidCash(self):
-		return self.agentLiquidCash() + self.opponentLiquidCash()
+    ## DERIVED FEATURES ABOUT THE GAME
+    def housesUsed(self):
+        valid = lambda h: abs(h) > 1 and abs(h) < 6
+        return sum([abs(h) - 1 for h in self.properties() if valid(h)])
 
-	def totalLiquidAssets(self):
-		return  self.agentLiquidAsset() + self.opponentLiquidAsset()
+    def housesLeft(self):
+        return 32 - self.housesUsed()
 
-	def totalWealth(self):
-		return self.agentNetWealth() + self.opponentNetWealth()
+    def hotelsUsed(self):
+        valid = lambda h: abs(h) == 6
+        return sum([1 for h in self.properties() if valid(h)])
 
-	## INFO ABOUT PHASE INFORMATIO
+    def hotelsLeft(self):
+        return 12 - self.hotelsUsed()
 
-	def getPhaseInfo(self):
-		if self.state[4] == 3:#Buying Property
-			return board[self.state[5][0]]['price']
-		if self.state[4] == 4:#Auction
-			return board[self.state[5][0]]['price']
-		if self.state[4] == 6:#Jail
-			return self.state[5]
+    def propertiesOwned(self):
+        valid = lambda p: abs(p) != 0
+        return sum([1 for p in self.properties() if valid(p)])
+
+    def propertiesMortgaged(self):
+        valid = lambda p: abs(p) == 7
+        return sum([1 for p in self.properties() if valid(p)])
+
+    def totalLiquidCash(self):
+        return self.agentLiquidCash() + self.opponentLiquidCash()
+
+    def totalLiquidAssets(self):
+        return self.agentLiquidAsset() + self.opponentLiquidAsset()
+
+    def totalWealth(self):
+        return self.agentNetWealth() + self.opponentNetWealth()
+
+    ## INFO ABOUT PHASE INFORMATIO
+
+    def getPhaseInfo(self):
+        if self.state[4] == 3:  # Buying Property
+            return board[self.state[5][0]]['price']
+        if self.state[4] == 4:  # Auction
+            return board[self.state[5][0]]['price']
+        if self.state[4] == 6:  # Jail
+            return self.state[5]
