@@ -7,6 +7,7 @@ import copy
 class Agent(object):
     def __init__(self, id):
         self.id = id
+        self.buyPct = 0.4
 
     def getBMSTDecision(self, state):
         s = State(self.id, state)
@@ -59,7 +60,7 @@ class Agent(object):
             return ("S",sellHousesList)
 
         #AFTER THE PLAYER HAS BECOME DEBT FREE
-        #PLAYER TRIES TO UNMORTGAGE ALL PROPERTIESs
+        #PLAYER TRIES TO UNMORTGAGE ALL PROPERTIES
         if debt == 0:
         	buyOff = []
 	        money_spent = 0
@@ -68,7 +69,7 @@ class Agent(object):
 	        	v = abs(s.properties()[prop])
                 if (v == 7):
                 	p = (board[prop]["price"] // 2) * 1.1 #10% interest on mortgage price
-                	if money_spent+p > money * 0.6:
+                	if money_spent+p > money * self.buyPct:#If money_spent + p is more than 40% (self.buyPct) of original money - Stop purchasing
                 		break
                 	buyOff.append(prop)
                 	money_spent+=p
@@ -93,7 +94,7 @@ class Agent(object):
 	                    for prop in eachMonopoly:#Should not cause issues with eachMonopoly as agentSign() is +1 or -1
 	                        v = abs(s.properties()[prop[0]])  # This gives us the value associated with the property 1 - 7
 	                        p = board[prop[0]]["build_cost"]
-	                        if (money_spent+p >= money*0.6):#Try to break loop if money spent + next house cost is more than 60% of available cash
+	                        if (money_spent+p >= money*self.buyPct):#Try to break loop if money spent + next house cost is more than 40% (self.buyPct) of available cash
 	                            continueLoop = False
 	                            break
 	                        if (0 < v < 6):#property is already bought and is not a hotel or mortgaged
