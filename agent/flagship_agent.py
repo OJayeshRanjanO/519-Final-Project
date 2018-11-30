@@ -5,17 +5,18 @@ import copy
 
 
 class Agent(object):
-    def __init__(self, id):
+    def __init__(self, id, _bmst_modifier=0.2,_buyPct=0.4,_jailStay=0.25):
         self.id = id
-        self.buyPct = 0.4
-        self.jailStay = 0.25
+        self._buyPct = _buyPct
+        self._jailStay = _jailStay
+        self._bmst_modifier = _bmst_modifier
 
     def getBMSTDecision(self, state):
         s = State(self.id, state)
         debt = s.agentLiquidCash() - s.agentDebt()
 
         if (debt < 0):#Trying to get money by mortgaging properties
-           	sellOff = []
+            sellOff = []
             for prop in s.agentProperties():
                 if (debt > 0):
                     break
@@ -62,53 +63,53 @@ class Agent(object):
 
         #AFTER THE PLAYER HAS BECOME DEBT FREE
         #PLAYER TRIES TO UNMORTGAGE ALL PROPERTIES
-        if debt == 0:
-        	buyOff = []
-	        money_spent = 0
-	        money = s.agentLiquidCash()        
-	        for prop in s.agentProperties():
-	        	v = abs(s.properties()[prop])
+        if debt >= 0:
+            buyOff = []
+            money_spent = 0
+            money = s.agentLiquidCash()        
+            for prop in s.agentProperties():
+                v = abs(s.properties()[prop])
                 if (v == 7):
-                	p = (board[prop]["price"] // 2) * 1.1 #10% interest on mortgage price
-                	if money_spent+p > money * self.buyPct:#If money_spent + p is more than 40% (self.buyPct) of original money - Stop purchasing
-                		break
-                	buyOff.append(prop)
-                	money_spent+=p
+                    p = (board[prop]["price"] // 2) * 1.1 #10% interest on mortgage price
+                    if money_spent+p > money * self._buyPct:#If money_spent + p is more than 40% (self._buyPct) of original money - Stop purchasing
+                        break
+                    buyOff.append(prop)
+                    money_spent+=p
             if buyOff:
-            	return ("M", buyOff)
+                return ("M", buyOff)
 
-	        #PLAYER TRIES TO BUY HOUSES
-	        monopolies = s.getAgentMonopolies()
-	        if len(monopolies) != 0:
-	            continueLoop = True
-	            monopolies = s.getAgentMonopolies()
-	            money = s.agentLiquidCash()
-	            money_spent = 0
-	            listHousesToBuy = {}
-	            while continueLoop:
-	                continueLoop = False
-	                for index in monopolies:
-	                    if s.agentSign() == -1:
-	                        eachMonopoly = sorted(monopolies[index].items(), key=lambda x: x[1], reverse=True)#Tile with the least number of houses comes first if agent is -1
-	                    elif s.agentSign() == 1:
-	                        eachMonopoly = sorted(monopolies[index].items(), key=lambda x: x[1])#Tile with the least number of houses comes first if agent is +1
-	                    for prop in eachMonopoly:#Should not cause issues with eachMonopoly as agentSign() is +1 or -1
-	                        v = abs(s.properties()[prop[0]])  # This gives us the value associated with the property 1 - 7
-	                        p = board[prop[0]]["build_cost"]
-	                        if (money_spent+p >= money*self.buyPct):#Try to break loop if money spent + next house cost is more than 40% (self.buyPct) of available cash
-	                            continueLoop = False
-	                            break
-	                        if (0 < v < 6):#property is already bought and is not a hotel or mortgaged
-	                            listHousesToBuy.setdefault(prop[0], 0)  # Add to dictionary with 0 houses
-	                            listHousesToBuy[prop[0]] += 1
-	                            continueLoop = True
-	                            money_spent += p
-	            buyHousesList = []
-	            for i in listHousesToBuy:
-	                if 0 < listHousesToBuy[i]:
-	                    buyHousesList.append((i, listHousesToBuy[i]))
-	            # print(buyHousesList)
-	            return ("B",buyHousesList)
+            #PLAYER TRIES TO BUY HOUSES
+            monopolies = s.getAgentMonopolies()
+            if len(monopolies) != 0:
+                continueLoop = True
+                monopolies = s.getAgentMonopolies()
+                money = s.agentLiquidCash()
+                money_spent = 0
+                listHousesToBuy = {}
+                while continueLoop:
+                    continueLoop = False
+                    for index in monopolies:
+                        if s.agentSign() == -1:
+                            eachMonopoly = sorted(monopolies[index].items(), key=lambda x: x[1], reverse=True)#Tile with the least number of houses comes first if agent is -1
+                        elif s.agentSign() == 1:
+                            eachMonopoly = sorted(monopolies[index].items(), key=lambda x: x[1])#Tile with the least number of houses comes first if agent is +1
+                        for prop in eachMonopoly:#Should not cause issues with eachMonopoly as agentSign() is +1 or -1
+                            v = abs(s.properties()[prop[0]])  # This gives us the value associated with the property 1 - 7
+                            p = board[prop[0]]["build_cost"]
+                            if (money_spent+p >= money*self._buyPct):#Try to break loop if money spent + next house cost is more than 40% (self._buyPct) of available cash
+                                continueLoop = False
+                                break
+                            if (0 < v < 6):#property is already bought and is not a hotel or mortgaged
+                                listHousesToBuy.setdefault(prop[0], 0)  # Add to dictionary with 0 houses
+                                listHousesToBuy[prop[0]] += 1
+                                continueLoop = True
+                                money_spent += p
+                buyHousesList = []
+                for i in listHousesToBuy:
+                    if 0 < listHousesToBuy[i]:
+                        buyHousesList.append((i, listHousesToBuy[i]))
+                # print(buyHousesList)
+                return ("B",buyHousesList)
         return True
 
     def respondTrade(self, state):
@@ -129,9 +130,9 @@ class Agent(object):
         s = State(self.id, state)
         if s.agentJailCards() != 0:
             return ("C", s.agentJailCards())
-        if len(s.opponentProperties()) / 28 > self.jailStay:  # If 25% owned by opponent
+        if len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
             return ("R")  # Simply roll or wait
-        if s.agentLiquidCash() >= 50:
+        if s.agentLiquidCash() >= s.agentLiquidCash() * self._jailStay:
             return ("C")
         else:
             return ("R")
