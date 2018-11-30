@@ -1,22 +1,22 @@
-import pdb
 import itertools
 import json
-#from agent import base_agent
-#from adjudicator import Adjudicator
-#import random
-#
-#def getAgent():
-#	agents = [base_agent.Agent]
-#	ind = random.randint(0, len(agents)-1)
-#	return agents[ind]
-#
-#amount = 100
-#adj = Adjudicator()
-#for i in range(amount):
-#	a1, a2 = getAgent(), getAgent()
-#	for i in range(2):
-#		adj.runGame(a1(i%2), a2((i+1)%2))
-#
+from agent import base_agent
+from adjudicator import Adjudicator
+import random
+
+def getAgent():
+	agents = [base_agent.Agent]
+	ind = random.randint(0, len(agents)-1)
+	return agents[ind]
+
+amount = 10
+adj = Adjudicator()
+for i in range(amount):
+	a1, a2 = getAgent(), getAgent()
+	for j in range(10):
+		for k in range(2):
+			adj.runGame(a1(k%2), a2((k+1)%2))
+
 
 with open("monopoly.log", "r") as fp:
 	lines = fp.readlines()

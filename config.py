@@ -6,10 +6,10 @@ verbose = {'pay': False, #Player has a debt to pay handle_payments method
            'auction':False,
            'cards':False, #when player falls on chance or community cards
            'state': True, #state information during each turn
-           'dice': False, #dice value for each turn
+           'dice': True, #dice value for each turn
            'board':False,
            'win_condition':False, #information of how winner was chosen
-           'turn':False, #info about turn
+           'turn':True, #info about turn
            'jail':False, #info if player goes to jail
            'win':True #who finally won
            }
