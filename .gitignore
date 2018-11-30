@@ -38,3 +38,6 @@ build
 # Vim Files
 *swo*
 *swp*
+
+#Pycharm Files
+.idea

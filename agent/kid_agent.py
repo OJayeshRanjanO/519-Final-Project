@@ -18,22 +18,22 @@ class Agent(object):
     ######## HELPER FUNCTIONS FOR BSMT ########
 
 
-    def _mortgageProps(self,debt,s):
+    def _mortgageProps(self,money,s):
         sellOff = []
         agent_properties = [i for i in s.agentProperties()]
         random.shuffle(agent_properties)#Pick any property for mortgage
         for prop in agent_properties:
-            if (debt > 0):
+            if (money > 0):
                 break
 
             v = abs(s.properties()[prop])
             p = board[prop]["price"] // 2
             if (v == 1):
                 sellOff.append(prop)
-                debt += p
+                money += p
         return sellOff
 
-    def _sellHouses(self,debt,s):
+    def _sellHouses(self,money,s):
         # This is when we sell houses if we couldn't mortgage anything or have debt left
         listHousesToSell = {}
         continueLoop = True
@@ -47,7 +47,7 @@ class Agent(object):
                 elif s.agentSign() == -1:
                     eachMonopoly = sorted(monopolies[index].items(), key=lambda x: x[1])#Sort by reverse order of houses bought for -1
                 for prop in eachMonopoly:  # prop is the (index of property, num houses on propery) #Should not cause issues with eachMonopoly as agentSign() is +1 or -1
-                    if (debt >= 0):#Try to break the loops if debt can be resolved
+                    if (money >= 0):#Try to break the loops if money can be resolved
                         continueLoop = False
                         break
                     v = abs(s.properties()[prop[0]])  # This gives us the value associated with the property 1 - 7
@@ -57,7 +57,7 @@ class Agent(object):
                         if (listHousesToSell[prop[0]] < v - 1):  # 2 - 6
                             listHousesToSell[prop[0]] += 1
                             continueLoop = True
-                            debt += p
+                            money += p
 
         sellHousesList = []
         for i in listHousesToSell:
@@ -68,15 +68,15 @@ class Agent(object):
 
     def getBMSTDecision(self, state):
         s = State(self.id, state)
-        debt = s.agentLiquidCash() - s.agentDebt()
+        money = s.agentLiquidCash() - s.agentDebt()
 
         #SIMPLY RESOLVE DEBT AND DO NOTHING ELSE
-        if (debt < 0):#Trying to get money by mortgaging properties
-            sellOff = self._mortgageProps(debt,s)
+        if (money < 0):#Trying to get money by mortgaging properties
+            sellOff = self._mortgageProps(money,s)
             if sellOff:
                 return ("M", sellOff)
 
-            sellHousesList = self._sellHouses(debt,s)
+            sellHousesList = self._sellHouses(money,s)
             if sellHousesList:
                 return ("S",sellHousesList)
 
