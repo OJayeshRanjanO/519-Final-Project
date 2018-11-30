@@ -8,6 +8,7 @@ class Agent(object):
     def __init__(self, id):
         self.id = id
         self.buyPct = 0.4
+        self.jailStay = 0.25
 
     def getBMSTDecision(self, state):
         s = State(self.id, state)
@@ -128,7 +129,7 @@ class Agent(object):
         s = State(self.id, state)
         if s.agentJailCards() != 0:
             return ("C", s.agentJailCards())
-        if len(s.opponentProperties()) / 28 > 0.25:  # If 50% owned by opponent
+        if len(s.opponentProperties()) / 28 > self.jailStay:  # If 25% owned by opponent
             return ("R")  # Simply roll or wait
         if s.agentLiquidCash() >= 50:
             return ("C")
