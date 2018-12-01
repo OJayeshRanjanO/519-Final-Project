@@ -12,7 +12,7 @@ if (not os.path.isfile('monopoly.log')):
 		ind = random.randint(0, len(agents)-1)
 		return agents[ind].Agent
 	
-	amount = 50
+	amount = 100
 	adj = Adjudicator()
 	for i in range(amount):
 		print("Batch %d/%d"%(i+1, amount))
