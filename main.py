@@ -1,17 +1,18 @@
 import itertools
 import json
-from agent import base_agent
+from agent import flagship_agent, kid_agent
 from adjudicator import Adjudicator
 import random
 
 def getAgent():
-	agents = [base_agent.Agent]
+	agents = [flagship_agent.Agent, kid_agent.Agent]
 	ind = random.randint(0, len(agents)-1)
 	return agents[ind]
 
-amount = 4
+amount = 100
 adj = Adjudicator()
 for i in range(amount):
+	print("Batch %d/%d"%(i+1, amount))
 	a1, a2 = getAgent(), getAgent()
 	for j in range(10):
 		for k in range(2):
