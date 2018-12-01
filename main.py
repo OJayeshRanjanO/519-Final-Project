@@ -14,8 +14,8 @@ adj = Adjudicator()
 for i in range(amount):
 	print("Batch %d/%d"%(i+1, amount))
 	a1, a2 = getAgent(), getAgent()
-	for j in range(1):
-		for k in range(1):
+	for j in range(20):
+		for k in range(2):
 			adj.runGame(a1(k%2), a2((k+1)%2))
 
 header = ["turn"]
