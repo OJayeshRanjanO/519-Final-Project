@@ -1,23 +1,26 @@
 import itertools
 import json
-from agent import flagship_agent, kid_agent, drunk_agent, probabilistic_agent, cheapskate_agent, asset_hoarder_agent
-from adjudicator import Adjudicator
+import os.path
 import random
 
-def getAgent():
-	agents = [flagship_agent, kid_agent, drunk_agent, probabilistic_agent, cheapskate_agent, asset_hoarder_agent]
-	ind = random.randint(0, len(agents)-1)
-	return agents[ind].Agent
-
-amount = 50
-adj = Adjudicator()
-for i in range(amount):
-	print("Batch %d/%d"%(i+1, amount))
-	a1, a2 = getAgent(), getAgent()
-	for j in range(20):
-		for k in range(2):
-			adj.runGame(a1(k%2), a2((k+1)%2))
-
+if (not os.path.isfile('monopoly.log')):
+	from agent import flagship_agent, kid_agent, drunk_agent, probabilistic_agent, cheapskate_agent, asset_hoarder_agent
+	from adjudicator import Adjudicator
+	
+	def getAgent():
+		agents = [flagship_agent, kid_agent, drunk_agent, probabilistic_agent, cheapskate_agent, asset_hoarder_agent]
+		ind = random.randint(0, len(agents)-1)
+		return agents[ind].Agent
+	
+	amount = 50
+	adj = Adjudicator()
+	for i in range(amount):
+		print("Batch %d/%d"%(i+1, amount))
+		a1, a2 = getAgent(), getAgent()
+		for j in range(20):
+			for k in range(2):
+				adj.runGame(a1(k%2), a2((k+1)%2))
+	
 header = ["turn"]
 header += ["property_%d" % i for i in range(1, 41)]
 header += ["jail_card_%d" % i for i in range(1, 3)]
@@ -35,7 +38,8 @@ with open("monopoly.log", "r") as fp:
 	flatten = lambda l: list(itertools.chain.from_iterable(l))
 	state = [[s[0]] + flatten(s[1:]) for s in state]
 	state = [json.dumps(s)[1:][:-1] for s in state]
-	state = "\n".join(state)
 	with open("output.csv", "w") as wr:
 		wr.write(header)
-		wr.write(state)
+		for s in state:
+			wr.write(s)
+			wr.write("\n")
