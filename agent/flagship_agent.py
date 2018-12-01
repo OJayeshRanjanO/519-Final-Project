@@ -5,14 +5,17 @@ from  agent.lookup import *
 
 
 class Agent(object):
-    def __init__(self, id, _bmst_modifier=0.2,_buyPct=0.4,_jailStay=0.25,_buy_prop=0.5,_auction_prop=0.5):
+    def __init__(self, id, _bmst_modifier=0.2,_buyPct=0.4,_jailStay=0.25,_jailStay_threshold=20,_buy_prop=0.5,_auction_prop=0.5,_dickness=0.9,_mercy_money=200):
         self.id = id
         self._buyPct = _buyPct
         self._jailStay = _jailStay
+        self._jailStay_threshold = _jailStay_threshold
         self._buy_prop = _buy_prop
         self._auction_prop = _auction_prop
         self._bmst_modifier = _bmst_modifier
-        self._dickness = 0.5 #Higher value = more dick
+        self._dickness = _dickness #Higher value = more dick
+        self._mercy_money = 1500#_mercy_money #Some Value for player money ...
+        self.currentTurn = -1
 
 
     ######## HELPER FUNCTIONS FOR BSMT ########
@@ -127,7 +130,7 @@ class Agent(object):
         s = State(self.id, state)
         if s.agentJailCards() != 0:
             return ("C", s.agentJailCards())
-        elif s.agentLiquidCash() >= s.agentLiquidCash() * self._jailStay:
+        elif self._jailStay_threshold <= s.agentLiquidCash() * self._jailStay:  # Stay in jail if user has less than $200
             return ("P",)
         elif len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
             return ("R",)  # Simply roll or wait

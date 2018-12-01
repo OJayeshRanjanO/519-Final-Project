@@ -93,11 +93,11 @@ class Agent(object):
         money = s.agentLiquidCash() - s.agentDebt()
 
         if (money < 0):  # Trying to get money by mortgaging properties
-            if random.random() < random.random():
+            if random.random() < self._probablity:
                 sellOff = self._mortgageProps(money, s)
                 if sellOff:
                     return ("M", sellOff)
-        if random.random() < random.random():# randomly propose trade
+        if random.random() < self._probablity:# propse trade 50% of the time
             if (self.currentTurn != s.currentTurnNumber()):
                 trade = self._proposeTrade(s, money)
                 self.currentTurn = s.currentTurnNumber()
@@ -107,10 +107,10 @@ class Agent(object):
         # AFTER THE PLAYER HAS BECOME DEBT FREE PLAYER BUYS BUILDINGS
         if money >= 0:
             sellOff = self._unmortgageProps(s, money)
-            if random.random() < random.random():#randomly unmortgage
+            if random.random() < self._probablity:
                 if sellOff:
                     return ("M", sellOff)
-            if random.random() < random.random():#randomly buy houses
+            if random.random() < self._probablity:
                 buyHousesList = s.seeBuyHouse()
                 if buyHousesList:
                     money_spent = 0
@@ -118,7 +118,7 @@ class Agent(object):
                     for eachProp in buyHousesList:#Simply add 1 house to all possible houses
                         p = board[eachProp]["build_cost"]
                         if p + money_spent <= money * self._buyPct:
-                            if random.random() < random.random():  # randomly buy houses
+                            if random.random() < self._probablity:#buys 50% of the time
                                 money_spent+=p
                                 s.setBuyHouse(eachProp)
                                 listToReturn.setdefault(eachProp,0)
@@ -129,12 +129,12 @@ class Agent(object):
                         return ("B", listToReturn)
         return False
 
-    def respondTrade(self, state):#randomly accept or reject trades
-        return False if random.random() < random.random() else True
+    def respondTrade(self, state):#50% accept or reject trades
+        return False if random.random() < self._probablity else True
 
     def buyProperty(self, state):
         s = State(self.id, state)
-        if random.random() < random.random():#randomly buy property
+        if random.random() < self._probablity:
             if s.getPhaseInfo() <= s.agentLiquidCash() * self._buy_prop:
                 return True
         return False
@@ -144,7 +144,7 @@ class Agent(object):
         s = State(self.id, state)
         #Auction from 50% of the price to 100% of the price
         money = s.agentLiquidCash() - s.agentDebt()
-        if random.random() < random.random():
+        if random.random() < self._probablity:
             if money > 0:
                 return min([s.opponentLiquidCash(),s.agentLiquidCash(),s.getPhaseInfo()])*0.2
         return 0
@@ -153,7 +153,7 @@ class Agent(object):
         s = State(self.id, state)
         if s.agentJailCards() != 0:
             return ("C", s.agentJailCards())
-        if random.random() < random.random():#random times player rolls first before paying
+        if random.random() < self._probablity:#50% of the time player rolls first before paying
             if len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
                 return ("R",)  # Simply roll or wait
             elif self._jailStay_threshold <= s.agentLiquidCash() * self._jailStay:#Stay in jail if user has less than $200
