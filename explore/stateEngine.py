@@ -1,4 +1,4 @@
-from lookup import board
+from agent.lookup import board
 
 
 def same_sign(x, y):
@@ -13,24 +13,8 @@ class State(object):
             0: [1, 3], 1: [6, 8, 9], 2: [11, 13, 14], 3: [16, 18, 19], 4: [21, 23, 24], 5: [26, 27, 29],
             6: [31, 32, 34], 7: [37, 39], 8: [5, 15, 25, 35], 9: [12, 28]
         }
+        self.mod_state = [list(k) if type(k)==tuple else k for k in self.state]
 
-    def getAgentMonopolies(self):
-        monopolies = {}
-        for i in self.monopolies:
-            if set(self.monopolies[i]) < set(self.agentProperties()):
-                monopolies[i] = {}
-                for j in self.monopolies[i]:
-                    (monopolies[i])[j] = (self.properties())[j]
-        return monopolies
-
-    def getOpponentMonopolies(self):
-        monopolies = {}
-        for i in self.monopolies:
-            if set(self.monopolies[i]) < set(self.opponentProperties()):
-                monopolies[i] = {}
-                for j in self.monopolies[i]:
-                    (monopolies[i])[j] = (self.properties())[j]
-        return monopolies
 
     ## BASE VALUES EXTRACTED FROM STATE
 
@@ -76,7 +60,9 @@ class State(object):
     def opponentDebt(self):
         return self.debt()[(self.opponentIndex()) + 1]
 
-    def properties(self):
+    def properties(self, use_mod=False):
+        if(use_mod):
+            return self.mod_state[1]
         return self.state[1][:-2]
 
     def jailCards(self):
@@ -144,15 +130,22 @@ class State(object):
         for p in properties:
             group = board[p]["monopoly"]
             if (not group in monopolies):
-                monopolies[group] = [0, board[p]["monopoly_size"]]
-            monopolies[group][0] += 1
-        return sum([1 for k in monopolies if monopolies[k][0] == monopolies[k][1]])
+                monopolies[group] = [[], board[p]["monopoly_size"]]
+            monopolies[group][0].append(p)
+        return [monopolies[k][0] for k in monopolies if len(monopolies[k][0])==monopolies[k][1]]
 
     def agentMonopolies(self):
         return self.calculateMonopolies(self.agentProperties())
 
     def opponentMonopolies(self):
         return self.calculateMonopolies(self.opponentProperties())
+
+    def agentMonopolyCount(self):
+        return len(self.calculateMonopolies(self.agentProperties()))
+
+    def opponentMonopolyCount(self):
+        return len(self.calculateMonopolies(self.opponentProperties()))
+
 
     ## DERIVED FEATURES ABOUT THE GAME
     def housesUsed(self):
@@ -186,6 +179,7 @@ class State(object):
     def totalWealth(self):
         return self.agentNetWealth() + self.opponentNetWealth()
 
+
     ## INFO ABOUT PHASE INFORMATIO
 
     def getPhaseInfo(self):
@@ -195,14 +189,13 @@ class State(object):
             return board[self.state[5][0]]['price']
         if self.state[4] == 6:  # Jail
             return self.state[5]
-    
+
     ## FUNCTION TO CALL ALL INFORMATION IN ONE SHOT AS AN ARRAY
     def extract_features(self):
-        tw = (1.0*self.totalWealth())
-        output =  [self.agentNetWealth()/tw, self.opponentNetWealth()/tw]
+        output =  [self.agentNetWealth(), self.opponentNetWealth()]
         output += [self.agentLiquidAsset(), self.opponentLiquidAsset()]
         output += [len(self.agentProperties()), len(self.opponentProperties())]
-        output += [self.agentMonopolies(), self.opponentMonopolies()]
+        output += [self.agentMonopolyCount(), self.opponentMonopolyCount()]
         output += [self.totalWealth(), self.propertiesOwned()]
         output += [self.agentPctOwnership(), self.opponentPctOwnership()]
         return output
@@ -215,3 +208,37 @@ class State(object):
         header += ['total_wealth', 'total_propoerty_count']
         header += ['agent_propratio_1', 'agent_prop_ratio_2']
         return header
+
+		
+    ## FUNCTION ALL POSSIBLE BUY/SELL HOUSES POSSIBLE IN DEPTH 1
+    def seeBuyHouse(self):
+        purchases = []
+        for m in self.agentMonopolies():
+            vals = [abs(self.properties(use_mod=True)[p]) for p in m]
+            minp = min([1 if v==7 else v for v in vals])
+            buys = [p for p,v in zip(m, vals) if v==minp and v!=7]
+            purchases += buys
+        return purchases
+
+    def setBuyHouse(self, indices):
+        if(type(indices) != list):
+            indices = [indices]
+        for ind in indices:
+            v = (abs(self.properties(use_mod=True)[ind])+1) * self.agentSign()
+            self.properties(use_mod=True)[ind] = v
+
+    def seeSellHouse(self):
+        sellouts = []
+        for m in self.agentMonopolies():
+            vals = [abs(self.properties(use_mod=True)[p]) for p in m]
+            maxp = max([1 if v==7 else v for v in vals])
+            sells = [p for p,v in zip(m, vals) if v==maxp and v != 1 and v!=7]
+            sellouts += sells
+        return sellouts
+
+    def setSellHouse(self, indices):
+        if(type(indices) != list):
+            indices = [indices]
+        for ind in indices:
+            v = (abs(self.properties(use_mod=True)[ind])-1) * self.agentSign()
+            self.properties(use_mod=True)[ind] = v
