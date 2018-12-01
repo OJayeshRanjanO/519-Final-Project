@@ -5,12 +5,12 @@ from agent.lookup import board
 
 
 class Agent(object):
-    def __init__(self, id, _bmst_modifier=0.2, _buyPct=0.4, _jailStay=0.25, _buy_prop=0.5):
+    def __init__(self, id, _bmst_modifier=0.2,_buyPct=0.4,_jailStay=0.25,_buy_prop=0.5,_auction_prop=0.5):
         self.id = id
         self._buyPct = _buyPct
         self._jailStay = _jailStay
         self._buy_prop = _buy_prop
-        # self._auction_prop = _auction_prop
+        self._auction_prop = _auction_prop
         self._bmst_modifier = _bmst_modifier
         self._dickness = 0.5 #Higher value = more dick
 
@@ -38,11 +38,9 @@ class Agent(object):
             continueLoop = False
             for index in monopolies:
                 if s.agentSign() == 1:
-                    eachMonopoly = sorted(monopolies[index].items(), key=lambda x: x[1],
-                                          reverse=True)  # Sort by reverse order of houses bought for +1
+                    eachMonopoly = sorted(monopolies[index].items(), key=lambda x: x[1],reverse=True)  # Sort by reverse order of houses bought for +1
                 elif s.agentSign() == -1:
-                    eachMonopoly = sorted(monopolies[index].items(),
-                                          key=lambda x: x[1])  # Sort by reverse order of houses bought for -1
+                    eachMonopoly = sorted(monopolies[index].items(),key=lambda x: x[1])  # Sort by reverse order of houses bought for -1
                 for prop in eachMonopoly:  # prop is the (index of property, num houses on propery) #Should not cause issues with eachMonopoly as agentSign() is +1 or -1
                     if (money >= 0):  # Try to break the loops if money can be resolved
                         continueLoop = False

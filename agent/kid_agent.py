@@ -5,16 +5,14 @@ import copy
 
 
 class Agent(object):
-    def __init__(self, id, _bmst_modifier=0.2,_buyPct=0.4,_jailStay=0.25,_buy_prop=0.5):
+    def __init__(self, id, _bmst_modifier=0.2,_buyPct=0.4,_jailStay=0.25,_buy_prop=0.5,_auction_prop=0.5):
         self.id = id
         self._buyPct = _buyPct
         self._jailStay = _jailStay
         self._buy_prop = _buy_prop
         self._auction_prop = _auction_prop
         self._bmst_modifier = _bmst_modifier
-
-
-
+        self._dickness = 0.5 #Higher value = more dick
     ######## HELPER FUNCTIONS FOR BSMT ########
 
 
@@ -33,38 +31,20 @@ class Agent(object):
                 money += p
         return sellOff
 
-    def _sellHouses(self,money,s):
-        # This is when we sell houses if we couldn't mortgage anything or have debt left
-        listHousesToSell = {}
-        continueLoop = True
-		monopolies = [i for i in s.getAgentMonopolies()]
-        random.shuffle(monopolies)#Pick any random monopoly
-        while continueLoop:
-            continueLoop = False
-            for index in monopolies:
-                if s.agentSign() == 1:
-                    eachMonopoly = sorted(monopolies[index].items(), key=lambda x: x[1], reverse=True)#Sort by reverse order of houses bought for +1
-                elif s.agentSign() == -1:
-                    eachMonopoly = sorted(monopolies[index].items(), key=lambda x: x[1])#Sort by reverse order of houses bought for -1
-                for prop in eachMonopoly:  # prop is the (index of property, num houses on propery) #Should not cause issues with eachMonopoly as agentSign() is +1 or -1
-                    if (money >= 0):#Try to break the loops if money can be resolved
-                        continueLoop = False
-                        break
-                    v = abs(s.properties()[prop[0]])  # This gives us the value associated with the property 1 - 7
-                    p = board[prop[0]]["build_cost"] // 2
-                    if (1 < v < 7):
-                        listHousesToSell.setdefault(prop[0], 0)  # Add to dictionary with 0 houses
-                        if (listHousesToSell[prop[0]] < v - 1):  # 2 - 6
-                            listHousesToSell[prop[0]] += 1
-                            continueLoop = True
-                            money += p
+    def _unmortgageProps(self,s,money):
+        #PLAYER TRIES TO UNMORTGAGE ALL PROPERTIES
+        buyOff = []
+        money_spent = 0
+        for prop in s.agentProperties():
+            v = abs(s.properties()[prop])
+            if (v == 7):
+                p = (board[prop]["price"] // 2) * 1.1 #10% interest on mortgage price
+                if money_spent+p > money * self._buyPct:#If money_spent + p is more than 40% (self._buyPct) of original money - Stop purchasing
+                    break
+                buyOff.append(prop)
+                money_spent+=p
+        return buyOff
 
-        sellHousesList = []
-        for i in listHousesToSell:
-            if 0 < listHousesToSell[i]:
-                sellHousesList.append((i, listHousesToSell[i]))
-        # print(sellHousesList)
-        return sellHousesList
 
     def getBMSTDecision(self, state):
         s = State(self.id, state)
@@ -76,9 +56,11 @@ class Agent(object):
             if sellOff:
                 return ("M", sellOff)
 
-            sellHousesList = self._sellHouses(money,s)
-            if sellHousesList:
-                return ("S",sellHousesList)
+        #AFTER THE PLAYER HAS BECOME DEBT FREE
+        if money >= 0:
+            buyOff = self._unmortgageProps(s,money)
+            if buyOff:
+                return ("M", buyOff)
 
         return False
 
@@ -94,7 +76,11 @@ class Agent(object):
     def auctionProperty(self, state):
         s = State(self.id, state)
         #Auction for 1 less than the same price
-        return s.getPhaseInfo()-1
+        money = s.agentLiquidCash() - s.agentDebt()
+        if money > 0:
+            return random.randrange(0, 10)
+        else:
+            return 1
 
     def jailDecision(self, state):
         s = State(self.id, state)
