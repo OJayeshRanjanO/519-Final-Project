@@ -198,7 +198,8 @@ class State(object):
     
     ## FUNCTION TO CALL ALL INFORMATION IN ONE SHOT AS AN ARRAY
     def extract_features(self):
-        output =  [self.agentNetWealth(), self.opponentNetWealth()]
+        tw = (1.0*self.totalWealth())
+        output =  [self.agentNetWealth()/tw, self.opponentNetWealth()/tw]
         output += [self.agentLiquidAsset(), self.opponentLiquidAsset()]
         output += [len(self.agentProperties()), len(self.opponentProperties())]
         output += [self.agentMonopolies(), self.opponentMonopolies()]

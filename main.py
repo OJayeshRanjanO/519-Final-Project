@@ -9,7 +9,7 @@ def getAgent():
 	ind = random.randint(0, len(agents)-1)
 	return agents[ind]
 
-amount = 1
+amount = 4
 adj = Adjudicator()
 for i in range(amount):
 	a1, a2 = getAgent(), getAgent()
