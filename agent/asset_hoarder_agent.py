@@ -7,16 +7,15 @@ from agent.lookup import board
 class Agent(object):
     def __init__(self, id, _bmst_modifier=0.2,_buyPct=0.4,_jailStay=0.25,_jailStay_threshold=20,_buy_prop=0.5,_auction_prop=0.5,_dickness=0.9,_mercy_money=200):
         self.id = id
-        self._buyPct = _buyPct#JUST TRY TO BUY NO MATTER WHAT _buyPct
+        self._buyPct = 0.8#JUST TRY TO BUY NO MATTER WHAT _buyPct
         self._jailStay = _jailStay
         self._jailStay_threshold = _jailStay_threshold
-        self._buy_prop = _buy_prop#JUST TRY TO BUY NO MATTER WHAT
+        self._buy_prop = 0.8#JUST TRY TO BUY NO MATTER WHAT
         self._auction_prop = _auction_prop
         self._bmst_modifier = _bmst_modifier
         self._dickness = _dickness #Higher value = more dick
         self._mercy_money = 1500#_mercy_money #Some Value for player money ...
         self.currentTurn = -1
-        self._probablity = 0.5
 
     ######## HELPER FUNCTIONS FOR BSMT ########
 
@@ -93,50 +92,60 @@ class Agent(object):
         money = s.agentLiquidCash() - s.agentDebt()
 
         if (money < 0):  # Trying to get money by mortgaging properties
-            if random.random() < random.random():
-                sellOff = self._mortgageProps(money, s)
-                if sellOff:
-                    return ("M", sellOff)
-        if random.random() < random.random():# randomly propose trade
-            if (self.currentTurn != s.currentTurnNumber()):
-                trade = self._proposeTrade(s, money)
-                self.currentTurn = s.currentTurnNumber()
-                if trade != None:
-                    return trade
+            sellOff = self._mortgageProps(money, s)
+            if sellOff:
+                return ("M", sellOff)
+            sellHousesList = s.seeSellHouse()
+
+            if sellHousesList:
+                listToReturn = {}
+                while sellHousesList:#Keep selling houses until there is no debt
+                    breakLoop = True
+                    for eachProp in sellHousesList:
+                        p = board[eachProp]["build_cost"] // 2
+                        if money < 0:#Keep doing until money is
+                            money+=p
+                            s.setSellHouse(eachProp)
+                            breakLoop = False
+                            listToReturn.setdefault(eachProp,0)
+                            listToReturn[eachProp]+=1
+                    if breakLoop:
+                        break
+                    sellHousesList = s.seeSellHouse()
+
+                listToReturn = [(i,listToReturn[i]) for i in listToReturn.keys()]
+                if listToReturn:
+                    return ("S", listToReturn)
 
         # AFTER THE PLAYER HAS BECOME DEBT FREE PLAYER BUYS BUILDINGS
         if money >= 0:
             sellOff = self._unmortgageProps(s, money)
-            if random.random() < random.random():#randomly unmortgage
-                if sellOff:
-                    return ("M", sellOff)
-            if random.random() < random.random():#randomly buy houses
-                buyHousesList = s.seeBuyHouse()
-                if buyHousesList:
-                    money_spent = 0
-                    listToReturn = {}
-                    for eachProp in buyHousesList:#Simply add 1 house to all possible houses
-                        p = board[eachProp]["build_cost"]
-                        if p + money_spent <= money * self._buyPct:
-                            if random.random() < random.random():  # randomly buy houses
-                                money_spent+=p
-                                s.setBuyHouse(eachProp)
-                                listToReturn.setdefault(eachProp,0)
-                                listToReturn[eachProp]+=1
+            if sellOff:
+                return ("M", sellOff)
+            buyHousesList = s.seeBuyHouse()
+            if buyHousesList:
+                money_spent = 0
+                listToReturn = {}
+                for eachProp in buyHousesList:#Simply add 1 house to all possible houses
+                    p = board[eachProp]["build_cost"]
+                    if p + money_spent <= money * self._buyPct:
+                        money_spent+=p
+                        s.setBuyHouse(eachProp)
+                        listToReturn.setdefault(eachProp,0)
+                        listToReturn[eachProp]+=1
 
-                    listToReturn = [(i,listToReturn[i]) for i in listToReturn.keys()]
-                    if listToReturn:
-                        return ("B", listToReturn)
+                listToReturn = [(i,listToReturn[i]) for i in listToReturn.keys()]
+                if listToReturn:
+                    return ("B", listToReturn)
         return False
 
-    def respondTrade(self, state):#randomly accept or reject trades
-        return False if random.random() < random.random() else True
+    def respondTrade(self, state):
+        return False
 
     def buyProperty(self, state):
         s = State(self.id, state)
-        if random.random() < random.random():#randomly buy property
-            if s.getPhaseInfo() <= s.agentLiquidCash() * self._buy_prop:
-                return True
+        if s.getPhaseInfo() <= s.agentLiquidCash() * self._buy_prop:
+            return True
         return False
 
     def auctionProperty(self, state):
@@ -144,30 +153,20 @@ class Agent(object):
         s = State(self.id, state)
         #Auction from 50% of the price to 100% of the price
         money = s.agentLiquidCash() - s.agentDebt()
-        if random.random() < random.random():
-            if money > 0:
-                return min([s.opponentLiquidCash(),s.agentLiquidCash(),s.getPhaseInfo()])*0.2
+        if money > 0:
+            return min([s.opponentLiquidCash(),s.agentLiquidCash(),s.getPhaseInfo()])*0.2
         return 0
 
     def jailDecision(self, state):
         s = State(self.id, state)
         if s.agentJailCards() != 0:
             return ("C", s.agentJailCards())
-        if random.random() < random.random():#random times player rolls first before paying
-            if len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
-                return ("R",)  # Simply roll or wait
-            elif self._jailStay_threshold <= s.agentLiquidCash() * self._jailStay:#Stay in jail if user has less than $200
-                return ("P",)
-            else:
-                return ("R",)
-        else:#50% of the time player chooses to pay first before rolling
-            if self._jailStay_threshold <= s.agentLiquidCash() * self._jailStay:#Stay in jail if user has less than $200
-                return ("P",)
-            elif len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
-                return ("R",)  # Simply roll or wait
-            else:
-                return ("R",)
-
+        elif len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
+            return ("R",)  # Simply roll or wait
+        elif self._jailStay_threshold <= s.agentLiquidCash() * self._jailStay:#Stay in jail if user has less than $200
+            return ("P",)
+        else:
+            return ("R",)
 
     def receiveState(self, state):
         # print(state)
