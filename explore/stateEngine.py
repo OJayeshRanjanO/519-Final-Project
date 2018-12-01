@@ -1,4 +1,4 @@
-from agent.lookup import board
+from lookup import board
 
 
 def same_sign(x, y):
@@ -83,10 +83,10 @@ class State(object):
     ## DERIVED FEATURES ABOUT PLAYERS
 
     def agentLiquidAsset(self):
-        return self.calculateLiquidAsset(self.agentSign())
+        return self.agentLiquidCash() + self.calculateLiquidAsset(self.agentSign())
 
     def opponentLiquidAsset(self):
-        return self.calculateLiquidAsset(self.opponentSign())
+        return self.opponentLiquidCash() + self.calculateLiquidAsset(self.opponentSign())
 
     def calculateLiquidAsset(self, sign):
         same = lambda p: same_sign(sign, p)
@@ -114,6 +114,14 @@ class State(object):
     def agentProperties(self):
         valid = lambda p: same_sign(self.agentSign(), p)
         return [i for i, p in enumerate(self.properties()) if valid(p)]
+    
+    def agentBuildingCount(self):
+        valid = lambda p: same_sign(self.agentSign(), p) and abs(p) < 7
+        return sum([abs(p) - 1 for p in self.properties() if valid(p)])
+    
+    def opponentBuildingCount(self):
+        valid = lambda p: same_sign(self.opponentSign(), p) and abs(p) < 7
+        return sum([abs(p) - 1 for p in self.properties() if valid(p)])
 
     def opponentProperties(self):
         valid = lambda p: same_sign(self.opponentSign(), p)
@@ -123,8 +131,16 @@ class State(object):
         return len(self.agentProperties()) / max((1.0*(len(self.agentProperties()) + len(self.opponentProperties()))), 1)
 
     def opponentPctOwnership(self):
-        return len(self.opponentProperties()) / max((1.0*(len(self.agentProperties()) + len(self.opponentProperties()))), 1)
+        return len(self.opponentProperties()) / max((1.0*(len(self.agentProperties()) + len(self.opponentProperties()))), 1)        
+    
+    def agentPctBuildingOwnership(self):
+        return self.agentBuildingCount() / max(1, (1.0*(self.agentBuildingCount() + self.opponentBuildingCount())))
+    
+    def opponentPctBuildingOwnership(self):
+        return self.opponentBuildingCount() / max(1, (1.0*(self.agentBuildingCount() + self.opponentBuildingCount())))
 
+
+    
     def calculateMonopolies(self, properties):
         monopolies = {}
         for p in properties:
@@ -192,12 +208,16 @@ class State(object):
 
     ## FUNCTION TO CALL ALL INFORMATION IN ONE SHOT AS AN ARRAY
     def extract_features(self):
-        output =  [self.agentNetWealth(), self.opponentNetWealth()]
-        output += [self.agentLiquidAsset(), self.opponentLiquidAsset()]
+        totalWealth = 1.0 * self.totalWealth()
+        totalLiqAss = 1.0 * self.totalLiquidAssets()        
+        
+        output =  [self.agentNetWealth()/totalWealth, self.opponentNetWealth()/totalWealth]
+        output += [self.agentLiquidAsset()/totalLiqAss, self.opponentLiquidAsset()/totalLiqAss]
         output += [len(self.agentProperties()), len(self.opponentProperties())]
         output += [self.agentMonopolyCount(), self.opponentMonopolyCount()]
         output += [self.totalWealth(), self.propertiesOwned()]
         output += [self.agentPctOwnership(), self.opponentPctOwnership()]
+        output += [self.agentPctBuildingOwnership(), self.opponentPctBuildingOwnership()]
         return output
     
     def extract_headers(self):
@@ -206,10 +226,11 @@ class State(object):
         header += ['agent_propcount_1', 'agent_propcount_2']
         header += ['agent_monopoly_1',  'agent_monopoly_2']
         header += ['total_wealth', 'total_propoerty_count']
-        header += ['agent_propratio_1', 'agent_prop_ratio_2']
+        header += ['agent_propratio_1', 'agent_propratio_2']
+        header += ['agent_bldgratio_1', 'agent_bldgratio_2']
         return header
 
-		
+
     ## FUNCTION ALL POSSIBLE BUY/SELL HOUSES POSSIBLE IN DEPTH 1
     def seeBuyHouse(self):
         purchases = []

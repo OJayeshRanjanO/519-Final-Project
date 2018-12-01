@@ -9,7 +9,7 @@ def getAgent():
 	ind = random.randint(0, len(agents)-1)
 	return agents[ind]
 
-amount = 100
+amount = 50
 adj = Adjudicator()
 for i in range(amount):
 	print("Batch %d/%d"%(i+1, amount))
