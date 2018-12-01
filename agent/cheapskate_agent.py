@@ -13,7 +13,7 @@ class Agent(object):
         self._auction_prop = _auction_prop
         self._bmst_modifier = _bmst_modifier
         self._dickness = _dickness #Higher value = more dick
-        self._mercy_money = 1500#_mercy_money #Some Value for player money ...
+        self._mercy_money = _mercy_money #Some Value for player money ...
         self.currentTurn = -1
 
     ######## HELPER FUNCTIONS FOR BSMT ########
@@ -94,6 +94,7 @@ class Agent(object):
             sellOff = self._mortgageProps(money, s)
             if sellOff:
                 return ("M", sellOff)
+            
         if (self.currentTurn != s.currentTurnNumber()):
             trade = self._proposeTrade(s, money)
             self.currentTurn = s.currentTurnNumber()
