@@ -1,6 +1,6 @@
 import itertools
 import json
-from agent import base_agent
+from agent import asset_hoarder_agent as base_agent
 from adjudicator import Adjudicator
 import random
 

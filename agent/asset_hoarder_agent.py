@@ -95,6 +95,27 @@ class Agent(object):
             sellOff = self._mortgageProps(money, s)
             if sellOff:
                 return ("M", sellOff)
+            sellHousesList = s.seeSellHouse()
+
+            if sellHousesList:
+                listToReturn = {}
+                while sellHousesList:#Keep selling houses until there is no debt
+                    breakLoop = True
+                    for eachProp in sellHousesList:
+                        p = board[eachProp]["build_cost"] // 2
+                        if money < 0:#Keep doing until money is
+                            money+=p
+                            s.setSellHouse(eachProp)
+                            breakLoop = False
+                            listToReturn.setdefault(eachProp,0)
+                            listToReturn[eachProp]+=1
+                    if breakLoop:
+                        break
+                    sellHousesList = s.seeSellHouse()
+
+                listToReturn = [(i,listToReturn[i]) for i in listToReturn.keys()]
+                if listToReturn:
+                    return ("S", listToReturn)
 
         # AFTER THE PLAYER HAS BECOME DEBT FREE PLAYER BUYS BUILDINGS
         if money >= 0:

@@ -59,25 +59,26 @@ class Agent(object):
             if sellOff:
                 return ("M", sellOff)
 
-            # sellHousesList = s.seeSellHouse()
-            # if sellHousesList:
-            #     listToReturn = {}
-            #     while sellHousesList:#Keep selling houses until there is no debt
-            #         breakLoop = True
-            #         for eachProp in sellHousesList:
-            #             p = board[eachProp]["build_cost"] // 2
-            #             if money < 0:#Keep doing until money is
-            #                 money+=p
-            #                 s.setSellHouse(eachProp)
-            #                 breakLoop = False
-            #                 listToReturn.setdefault(eachProp,0)
-            #                 listToReturn[eachProp]+=1
-            #         if breakLoop:
-            #             break
-            #         sellHousesList = s.seeSellHouse()
-            #
-            #     listToReturn = [(i,listToReturn[i]) for i in listToReturn.keys()]
-            #     return ("S", listToReturn)
+            sellHousesList = s.seeSellHouse()
+            if sellHousesList:
+                listToReturn = {}
+                while sellHousesList:#Keep selling houses until there is no debt
+                    breakLoop = True
+                    for eachProp in sellHousesList:
+                        p = board[eachProp]["build_cost"] // 2
+                        if money < 0:#Keep doing until money is
+                            money+=p
+                            s.setSellHouse(eachProp)
+                            breakLoop = False
+                            listToReturn.setdefault(eachProp,0)
+                            listToReturn[eachProp]+=1
+                    if breakLoop:
+                        break
+                    sellHousesList = s.seeSellHouse()
+
+                listToReturn = [(i,listToReturn[i]) for i in listToReturn.keys()]
+                if listToReturn:
+                    return ("S", listToReturn)
 
 
         #AFTER THE PLAYER HAS BECOME DEBT FREE
@@ -85,20 +86,21 @@ class Agent(object):
             buyOff = self._unmortgageProps(s,money)
             if buyOff:
                 return ("M", buyOff)
-            # buyHousesList = s.seeBuyHouse()
-            # if buyHousesList:
-            #     money_spent = 0
-            #     listToReturn = {}
-            #     for eachProp in buyHousesList:#Simply add 1 house to all possible houses
-            #         p = board[eachProp]["build_cost"]
-            #         if p + money_spent <= money * self._buyPct:
-            #             money_spent+=p
-            #             s.setBuyHouse(eachProp)
-            #             listToReturn.setdefault(eachProp,0)
-            #             listToReturn[eachProp]+=1
-            #
-            #     listToReturn = [(i,listToReturn[i]) for i in listToReturn.keys()]
-            #     return ("B", listToReturn)
+            buyHousesList = s.seeBuyHouse()
+            if buyHousesList:
+                money_spent = 0
+                listToReturn = {}
+                for eachProp in buyHousesList:  # Simply add 1 house to all possible houses
+                    p = board[eachProp]["build_cost"]
+                    if p + money_spent <= money * self._buyPct:
+                        money_spent += p
+                        s.setBuyHouse(eachProp)
+                        listToReturn.setdefault(eachProp, 0)
+                        listToReturn[eachProp] += 1
+
+                listToReturn = [(i, listToReturn[i]) for i in listToReturn.keys()]
+                if listToReturn:
+                    return ("B", listToReturn)
         return True
 
     def respondTrade(self, state):
