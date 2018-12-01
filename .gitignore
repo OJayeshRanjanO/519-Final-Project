@@ -18,6 +18,7 @@ board.csv
 diff.txt
 .project
 .pydevproject
+*.ipynb_checkpoints*
 tools.py
 
 # Installer logs
