@@ -127,12 +127,12 @@ class Agent(object):
         s = State(self.id, state)
         if s.agentJailCards() != 0:
             return ("C", s.agentJailCards())
-        elif len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
-            return ("R")  # Simply roll or wait
         elif s.agentLiquidCash() >= s.agentLiquidCash() * self._jailStay:
-            return ("C")
+            return ("P",)
+        elif len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
+            return ("R",)  # Simply roll or wait
         else:
-            return ("R")
+            return ("R",)
 
     def receiveState(self, state):
         # print(state)

@@ -87,9 +87,9 @@ class Agent(object):
         if s.agentJailCards() != 0:#Use cards if I have them
             return ("C", s.agentJailCards())
         elif s.agentLiquidCash() >= 50: #If I have money I will spend it
-            return ("C")
+            return ("P",)
         else:
-            return ("R")
+            return ("R",)
 
     def receiveState(self, state):
         # print(state)
