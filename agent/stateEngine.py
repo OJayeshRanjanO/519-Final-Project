@@ -1,4 +1,5 @@
 from agent.lookup import board
+import copy
 
 
 def same_sign(x, y):
@@ -7,13 +8,13 @@ def same_sign(x, y):
 
 class State(object):
     def __init__(self, iden, state):
-        self.state = state[:-1]
+        self.state = [list(k) if type(k)==tuple else k for k in state[:-1]]
         self.iden = iden
         self.monopolies = {
             0: [1, 3], 1: [6, 8, 9], 2: [11, 13, 14], 3: [16, 18, 19], 4: [21, 23, 24], 5: [26, 27, 29],
             6: [31, 32, 34], 7: [37, 39], 8: [5, 15, 25, 35], 9: [12, 28]
         }
-        self.mod_state = [list(k) if type(k)==tuple else k for k in self.state]
+        self.mod_state = [list(k) if type(k)==tuple else k for k in state[:-1]]
 
 
     ## BASE VALUES EXTRACTED FROM STATE
@@ -198,6 +199,11 @@ class State(object):
 
     ## INFO ABOUT PHASE INFORMATIO
 
+    def getBuyPropertyIndex(self):
+        if(self.state[4] == 3):
+            return self.state[5][0]
+        return -1
+
     def getPhaseInfo(self):
         if self.state[4] == 3:  # Buying Property
             return board[self.state[5][0]]['price']
@@ -229,6 +235,21 @@ class State(object):
         header += ['agent_propratio_1', 'agent_propratio_2']
         header += ['agent_bldgratio_1', 'agent_bldgratio_2']
         return header
+
+    ## FUNCTION POTENTIALLY BUYING PROPERTY
+    def agentModifyCash(self, val):
+        self.state[3][self.agentIndex()] += val
+
+    def opponentModifyCash(self, val):
+        self.state[3][self.opponentIndex()] += val
+
+    def agentBuyProperty(self, ind, cost):
+        self.state[1][ind] = self.agentSign()
+        self.agentModifyCash(-cost)
+
+    def opponentBuyProperty(self, ind, cost):
+        self.state[1][ind] = self.opponentSign()
+        self.opponentModifyCash(-cost)
 
 
     ## FUNCTION ALL POSSIBLE BUY/SELL HOUSES POSSIBLE IN DEPTH 1
@@ -263,3 +284,7 @@ class State(object):
         for ind in indices:
             v = (abs(self.properties(use_mod=True)[ind])-1) * self.agentSign()
             self.properties(use_mod=True)[ind] = v
+
+    def clone(self):
+        s_mod = copy.deepcopy(self.state)
+				return State(s_mod)
