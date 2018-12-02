@@ -1,6 +1,32 @@
 from agent.stateEngine import *
 import random
 from agent.lookup import board
+from random import randint as rand
+
+class RandomWalk(object):
+	
+	def __init__(self, s_len=5, m_len=15, l_len=30):
+		rollNum = 10000
+		self.dice = [rand(1, 6) + rand(1, 6) for i in range(rollNum)]
+		self.l_len = l_len
+		self.s_len = s_len
+		self.m_len = m_len
+
+	def walk(self, player, target):
+		s, m, l = 0, 0, 0
+		roll = lambda c: (c + self.dice.pop()) % 40
+		curr = roll(player)
+		prev = player
+		for n in range(self.l_len):
+			if(prev < target < curr):
+				l += 1
+				if(n < self.s_len):
+					s += 1
+				if(n < self.m_len):
+					m += 1
+			prev = currs
+			curr = roll(curr)
+		return (s, m, l)
 
 class Oracle(object):
 	def getExpected_Short(self, state):

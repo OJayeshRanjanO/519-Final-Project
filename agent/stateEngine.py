@@ -287,4 +287,5 @@ class State(object):
 
     def clone(self):
         s_mod = copy.deepcopy(self.state)
-				return State(s_mod)
+        s_mod.append([])
+        return State(self.iden, s_mod)
