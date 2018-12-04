@@ -7,171 +7,242 @@ from agent.lookup import board
 class Agent(object):
     def __init__(self, id, _bmst_modifier=0.2,_buyPct=0.4,_jailStay=0.25,_jailStay_threshold=20,_buy_prop=0.5,_auction_prop=0.5,_dickness=0.9,_mercy_money=200):
         self.id = id
-        self._buyPct = _buyPct#JUST TRY TO BUY NO MATTER WHAT _buyPct
-        self._jailStay = _jailStay
-        self._jailStay_threshold = _jailStay_threshold
-        self._buy_prop = _buy_prop#JUST TRY TO BUY NO MATTER WHAT
-        self._auction_prop = _auction_prop
-        self._bmst_modifier = _bmst_modifier
-        self._dickness = _dickness #Higher value = more dick
-        self._mercy_money = 1500#_mercy_money #Some Value for player money ...
-        self.currentTurn = -1
-        self._probablity = 0.5
+        self._buyPct = 0
+        self._jailStay = 0
+        self._jailStay_threshold = 0
+        self._buy_prop = 0
+        self._auction_prop = 0
+        self._bmst_modifier = 0
+        self._dickness = 0
+        self._mercy_money = 0
+        self.currentTurn = 0
+        self._probablity = 0
 
     ######## HELPER FUNCTIONS FOR BSMT ########
 
-    def _mortgageProps(self, money, s):
-        sellOff = []
-        for prop in s.agentProperties():
-            if (money > 0):
-                break
-
-            v = abs(s.properties()[prop])
-            p = board[prop]["price"] // 2
-            if (v == 1):
-                sellOff.append(prop)
-                money += p
-        return sellOff
-
-    def _unmortgageProps(self, s, money):
-        # PLAYER TRIES TO UNMORTGAGE ALL PROPERTIES
-        buyOff = []
-        money_spent = 0
-        for prop in s.agentProperties():
-            v = abs(s.properties()[prop])
-            if (v == 7):
-                p = (board[prop]["price"] // 2) * 1.1  # 10% interest on mortgage price
-                if money_spent + p > money * self._buyPct:  # If money_spent + p is more than 40% (self._buyPct) of original money - Stop purchasing
-                    break
-                buyOff.append(prop)
-                money_spent += p
-        return buyOff
-
-    def _proposeTrade(self, s,money):
-        monopolies = s.opponentMonopolies()
-        properties = s.opponentProperties()
-        opponentCash = s.opponentLiquidCash() - s.opponentDebt()
-        all_properties = s.properties()
-
-        if (opponentCash < self._mercy_money):#Sees opponent in trouble
-            if len(monopolies) != 0:#Opponent has monopolies
-                for eachMonopoly in monopolies:
-                    for eachProp in eachMonopoly:
-                        v = all_properties[eachProp]
-                        if abs(v) == 1:#Unimproved property
-                            cost = (board[v])['price'] * self._dickness
-                            if money * self._buy_prop >= cost:
-                                return ["T",cost,[eachProp],0,[]]
-                        elif 1 < abs(v) < 7:
-                            cost = ((board[v])['price'] + ((board[v])['build_cost'] * abs(v)-1)) *  self._dickness
-                            if money * self._buy_prop >= cost:
-                                return ["T",cost,[eachProp],0,[]]
-                        elif abs(eachProp) == 7:
-                            cost = ((board[v])['price'] * 2 * 1.1) *  self._dickness
-                            if money * self._buy_prop >= cost:
-                                return ["T",cost,[eachProp],0,[]]
-
-            else:#Opponent has no monopolies, ask for cheap properties
-                for eachProp in properties:
-                    v = all_properties[eachProp]
-                    if abs(v) == 1:  # Unimproved property
-                        cost = (board[v])['price'] * self._dickness
-                        if money * self._buy_prop >= cost:
-                            return ["T",cost,[eachProp],0,[]]
-                    elif 1 < abs(v) < 7:
-                        cost = ((board[v])['price'] + ((board[v])['build_cost'] * abs(v) - 1)) * self._dickness
-                        if money * self._buy_prop >= cost:
-                            return ["T",cost,[eachProp],0,[]]
-                    elif abs(eachProp) == 7:
-                        cost = ((board[v])['price'] * 2 * 1.1) * self._dickness
-                        if money * self._buy_prop >= cost:
-                            return ["T",cost,[eachProp],0,[]]
-        return None
-
     def getBMSTDecision(self, state):
         s = State(self.id, state)
-        money = s.agentLiquidCash() - s.agentDebt()
-
-        if (money < 0):  # Trying to get money by mortgaging properties
-            if random.random() < random.random():
-                sellOff = self._mortgageProps(money, s)
-                if sellOff:
-                    return ("M", sellOff)
-        if random.random() < random.random():# randomly propose trade
-            if (self.currentTurn != s.currentTurnNumber()):
-                trade = self._proposeTrade(s, money)
+        self.getGameData(state, s)
+        print()
+        while True:
+            i = input("(B)uy, Un/(M)ortgage, (S)ell, (T)rade, (Q)uit ")
+            if i.upper() == "B":
+                b = ""
+                buy_houses = {}
+                money_remaining = s.agentLiquidCash() - s.agentLiquidCash()
+                if money_remaining < 0:
+                    print("Insuffcient cash: ",str(money_remaining))
+                    return ("B",[])
+                while b!="Q":
+                    print()
+                    possible_houses = s.seeBuyHouse()
+                    print("Houses that can be bought: ", str(possible_houses))
+                    print("Money Left: ", str(money_remaining))
+                    b = input("(Q) to Quit return list otherwise type the property number BUY")
+                    if b.upper() == "Q":
+                        return ("B",[(i,buy_houses[i]) for i in buy_houses.keys()])
+                    else:
+                        for monopolies in possible_houses:
+                            if int(b) in monopolies:
+                                if board[int(b)]['build_cost'] < money_remaining:
+                                    s.setBuyHouse(int(b))
+                                    money_remaining -= board[int(b)]['build_cost']
+                                    buy_houses.setdefault(int(b),0)
+                                    buy_houses[int(b)]+=1
+                            else:
+                                print("Invalid property number")
+                        b = ""
+            elif i.upper() == "M":
+                b = ""
+                money = s.agentLiquidCash() - s.agentLiquidCash()
+                properties_to_mortgage = []
+                while b.upper()!="Q":
+                    print()
+                    props = s.properties()
+                    mortgagble_prop = [i for i in s.agentProperties() if (abs(props[i]) == 1 or abs(props[i]) == 7) and i not in properties_to_mortgage]
+                    print("Possible properties to mortgage: ", str(mortgagble_prop))
+                    print("Money Left: ", str(money))
+                    b = input("(Q) to Quit return list otherwise type the property number to (un)mortgage")
+                    if b.upper() == "Q":
+                        return ("M",properties_to_mortgage)
+                    elif int(b) in mortgagble_prop:
+                        if abs(props[int(b)]) == 7:#UNMORTGAGE BACK PROPERTY
+                            money-=(board[int(b)]["price"] // 2) * 1.1
+                            if money <= 0:
+                                properties_to_mortgage.append(int(b))
+                            else:
+                                print("Not Enough Money")
+                        else:#MORTGAGE BACK PROPERTY
+                            money+=(board[int(b)]["price"] // 2)
+                        b = ""
+                    else:
+                        print("Invalid property number")
+                        b = ""
+            elif i.upper() == "S":
+                b = ""
+                sell_houses = {}
+                money_remaining = s.agentLiquidCash() - s.agentLiquidCash()
+                while b.upper()!="Q":
+                    print()
+                    possible_houses = s.seeSellHouse()
+                    print("Houses that can be sold: ", str(sell_houses))
+                    print("Money Left: ", str(money_remaining))
+                    b = input("(Q) to Quit return list otherwise type the property number to SELL")
+                    if b.upper() == "Q":
+                        return ("S",[(i,sell_houses[i]) for i in sell_houses.keys()])
+                    else:
+                        for monopolies in possible_houses:
+                            if int(b) in monopolies:
+                                s.setBuyHouse(int(b))
+                                money_remaining += board[int(b)]['build_cost']//2
+                                sell_houses.setdefault(int(b),0)
+                                sell_houses[int(b)]+=1
+                            else:
+                                print("Invalid property number")
+                        b = ""
+            elif i.upper() == "T":
+                if self.currentTurn == s.currentTurnNumber():
+                    print("Can't propose 2 trades in same turn")
+                    return False
                 self.currentTurn = s.currentTurnNumber()
-                if trade != None:
-                    return trade
+                b = ""
+                current_trade_list = ["T",0,[],0,[]]
+                while b.upper()!="Q":
+                    print()
+                    print("Trades: ",current_trade_list)
+                    print("Opponent Properties: ",s.opponentProperties())
+                    print("Agent Properties: ",s.agentProperties())
+                    print("Opponent Monopolies: ",s.opponentMonopolies())
+                    print("Agent Monopolies: ",s.agentMonopolies())
+                    money = s.agentLiquidCash() - s.debt()
+                    b = input("(Q) to Quit and return list for trade, (R) to Request, (O) to Offer")
+                    if b.upper() == "Q":
+                        return current_trade_list
+                    elif b.upper() == "O":
+                        c = ""
+                        while c.upper()!="S":#I AM OFFERING STUFF TO BUY FROM OTHER PLAYER
+                            print("Cash Offer: ", str(current_trade_list[1])," Properties for offer: ",str(current_trade_list[1]))
+                            c = input("(S) to quit offer menu otherwise enter the property number, type the number again to remove it")
+                            if c.upper() != "S":
+                                if int(c) not in s.opponentProperties():
+                                    print("Invalid property")
+                                    continue
+                                m = input("Cash Offer: ")
+                                if m > money:
+                                    current_trade_list[1] = m
+                                    if int(c) in current_trade_list[2]:
+                                        current_trade_list[2].append(int(c))
+                                    else:
+                                        current_trade_list[2].remove(int(c))
+                                else:
+                                    print("Insufficient Cash")
+                            else:
+                                b = ""
+                                break
+                        b=""
+                    elif b.upper() == "R":#REQUESTING PROPERTY TO BE SOLD TO OTHER PLAYER
+                        c = ""
+                        while c.upper()!="S":#I AM OFFERING STUFF TO BUY FROM OTHER PLAYER
+                            print("Cash Request: ", str(current_trade_list[3])," Properties to request: ",str(current_trade_list[4]))
+                            c = input("(S) to quit request menu otherwise enter the property number, type the number again to remove it")
+                            if c.upper() != "S":
+                                if int(c) not in s.agentProperties():
+                                    print("Invalid property")
+                                    continue
+                                m = input("Cash Offer: ")
+                                if m > money:
+                                    current_trade_list[3] = m
+                                    if int(c) in current_trade_list[4]:
+                                        current_trade_list[4].append(int(c))
+                                    else:
+                                        current_trade_list[4].remove(int(c))
+                                else:
+                                    print("Insufficient Cash")
+                            else:
+                                b = ""
+                                break
+                        b=""
+                    else:
+                        print("Invalid option")
+                        b=""
+                return False
+            else:
+                return False
 
-        # AFTER THE PLAYER HAS BECOME DEBT FREE PLAYER BUYS BUILDINGS
-        if money >= 0:
-            sellOff = self._unmortgageProps(s, money)
-            if random.random() < random.random():#randomly unmortgage
-                if sellOff:
-                    return ("M", sellOff)
-            if random.random() < random.random():#randomly buy houses
-                buyHousesList = s.seeBuyHouse()
-                if buyHousesList:
-                    money_spent = 0
-                    listToReturn = {}
-                    for eachProp in buyHousesList:#Simply add 1 house to all possible houses
-                        p = board[eachProp]["build_cost"]
-                        if p + money_spent <= money * self._buyPct:
-                            if random.random() < random.random():  # randomly buy houses
-                                money_spent+=p
-                                s.setBuyHouse(eachProp)
-                                listToReturn.setdefault(eachProp,0)
-                                listToReturn[eachProp]+=1
-
-                    listToReturn = [(i,listToReturn[i]) for i in listToReturn.keys()]
-                    if listToReturn:
-                        return ("B", listToReturn)
-        return False
-
-    def respondTrade(self, state):#randomly accept or reject trades
-        return False if random.random() < random.random() else True
-
+    def respondTrade(self, state):
+        s = State(self.id, state)
+        print("Turn State: ",str(state[:-1]))
+        print("Turn Number", str(s.currentTurnNumber()))
+        print("Agent Cash",str(s.agentLiquidCash()), "||Opponent Cash",str(s.opponentLiquidCash()))
+        print("Agent Debt",str(s.agentDebt()), "||Opponent Debt",str(s.opponentDebt()))
+        print("Agent Liquid Asset",str(s.agentLiquidAsset()), "||Opponent Liquid Asset",str(s.opponentLiquidAsset()))
+        print("Agent Net Asset",str(s.agentNetWealth()), "||Opponent Net Asset",str(s.opponentNetWealth()))
+        print("Agent Properties:"+str(s.agentProperties())+"\n||Opponent Properties:"+str(s.opponentProperties()))
+        print("Agent Percentage Ownership:",str(s.agentPctOwnership()),"Opponent Percentage Ownership:",str(s.opponentPctOwnership()))
+        print("Agent Monopolies:",str(s.agentMonopolies()),"Opponent Monopolies:",str(s.opponentMonopolies()))
+        print()
+        print(s.getPhaseInfo())
+        while True:
+            n = input("Accept Trade? (Y) or Deny (N)")
+            if n.upper() == "Y":
+                s.state[5][0] = True
+                return s.state[5]
+            elif n.upper() == "N":
+                s.state[5][0] = False
+                return s.state[5]
     def buyProperty(self, state):
         s = State(self.id, state)
-        if random.random() < random.random():#randomly buy property
-            if s.getPhaseInfo() <= s.agentLiquidCash() * self._buy_prop:
+        self.getGameData(state, s)
+        print()
+        print("Property Index: ", s.state[5][0])
+        print("Property Price: ",s.getPhaseInfo())
+        while True:
+            n = input("Buy Trade? (Y) or Deny (N)")
+            if n.upper() == "Y":
                 return True
-        return False
+            elif n.upper() == "N":
+                return False
 
     def auctionProperty(self, state):
-        # print("auctionProperty")
         s = State(self.id, state)
-        #Auction from 50% of the price to 100% of the price
-        money = s.agentLiquidCash() - s.agentDebt()
-        if random.random() < random.random():
-            if money > 0:
-                return min([s.opponentLiquidCash(),s.agentLiquidCash(),s.getPhaseInfo()])*0.2
-        return 0
-
+        self.getGameData(state, s)
+        print()
+        print("Property Index: ", s.state[5][0])
+        print("Property Price: ",s.getPhaseInfo())
+        while True:
+            n = int(input("Bid Value: "))
+            return n
     def jailDecision(self, state):
         s = State(self.id, state)
-        if s.agentJailCards() != 0:
-            return ("C", s.agentJailCards())
-        if random.random() < random.random():#random times player rolls first before paying
-            if len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
-                return ("R",)  # Simply roll or wait
-            elif self._jailStay_threshold <= s.agentLiquidCash() * self._jailStay:#Stay in jail if user has less than $200
-                return ("P",)
-            else:
-                return ("R",)
-        else:#50% of the time player chooses to pay first before rolling
-            if self._jailStay_threshold <= s.agentLiquidCash() * self._jailStay:#Stay in jail if user has less than $200
-                return ("P",)
-            elif len(s.opponentProperties()) / 28 > self._jailStay:  # If 25% owned by opponent
-                return ("R",)  # Simply roll or wait
-            else:
-                return ("R",)
-
-
+        print(s.agentJailCards())
+        while True:
+            n = input("(C) to use Jail Card, (P) to pay $50, (R) to Roll")
+            if n == "C":
+                if s.agentJailCards() == 0:
+                    print("No Jail Cards available")
+                else:
+                    print(n,s.agentJailCards())
+            elif n == "P":
+                if s.agentLiquidCash() - s.agentDebt() > 50:
+                    return (n)
+                else:
+                    print("Insufficient Cash")
+            elif n == "R":
+                return (n)
     def receiveState(self, state):
         # print(state)
+        s = State(self.id, state)
+        self.getGameData(state, s)
         return None
 
 
-
+    def getGameData(self,state,s):
+        print("Turn State: ",str(state[:-1]))
+        print("Turn Number", str(s.currentTurnNumber()))
+        print("Agent Cash",str(s.agentLiquidCash()), "||Opponent Cash",str(s.opponentLiquidCash()))
+        print("Agent Debt",str(s.agentDebt()), "||Opponent Debt",str(s.opponentDebt()))
+        print("Agent Liquid Asset",str(s.agentLiquidAsset()), "||Opponent Liquid Asset",str(s.opponentLiquidAsset()))
+        print("Agent Net Asset",str(s.agentNetWealth()), "||Opponent Net Asset",str(s.opponentNetWealth()))
+        print("Agent Properties:"+str(s.agentProperties())+"\n||Opponent Properties:"+str(s.opponentProperties()))
+        print("Agent Percentage Ownership:",str(s.agentPctOwnership()),"Opponent Percentage Ownership:",str(s.opponentPctOwnership()))
+        print("Agent Monopolies:",str(s.agentMonopolies()),"Opponent Monopolies:",str(s.opponentMonopolies()))

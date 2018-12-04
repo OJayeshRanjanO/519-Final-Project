@@ -205,6 +205,8 @@ class State(object):
         return -1
 
     def getPhaseInfo(self):
+        if self.state[4] == 1:#TRADE
+            return self.state[5][1:]
         if self.state[4] == 3:  # Buying Property
             return board[self.state[5][0]]['price']
         if self.state[4] == 4:  # Auction
