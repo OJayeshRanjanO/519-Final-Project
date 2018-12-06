@@ -58,7 +58,6 @@ class Oracle(object):
 
 	# modList = [(p_id, [(b_id, s_id, [(prop, val, bought)], c, b_c, s_c),...]),...]
 	def action(self, modList, state, closeToZero=False):
-		pdb.set_trace()
 		modList = [(0, []),] + modList
 		values  = []
 		for index, (p_id, mods) in enumerate(modList, 0):
@@ -135,13 +134,13 @@ class Agent(object):
 		pctMod = 0.1
 		for i in range(1, amtMod+1):
 			c = cost*(i*pctMod)
-			mods.append((opp_id, [(agent_id, 0, [(ind, 1)])], c, c, 0))
+			mods.append((opp_id, [(agent_id, 0, [(ind, 1, 1)], c, c, 0)]))
 
-		baseWilling = self.agentLiquidCash()*0.3
+		baseWilling = s.agentLiquidCash()*0.3
 		expctAmount = self.oracle.action(mods, s, closeToZero=True)*pctMod*cost
 		prevAmount  = 0.55*cost
 
-		return min(baseWilling, max(expctAmount, prevAmount))
+		return int((expctAmount > 0) * (min(baseWilling, max(expctAmount, prevAmount))))
 
 
 	def jailDecision(self, state):
