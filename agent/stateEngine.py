@@ -347,3 +347,9 @@ class State(object):
             rent = board[prop]['rent_house_' + str(v-1)]
     
         return rent                   
+
+    def getTradeInfo(self):
+        if(self.state[4] == 1):
+            return self.state[5]
+        else:
+            return [0, [], 0, []]

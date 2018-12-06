@@ -93,7 +93,7 @@ class Agent(object):
 
 	def respondTrade(self, state):
 		s = State(self.id, state)
-		c_offer, p_offer, c_req, p_req = s.getPhaseInfo()
+		c_offer, p_offer, c_req, p_req = s.getTradeInfo()
 		opp_id = s.opponentIndex()
 		agent_id = s.agentIndex()
 
@@ -121,6 +121,7 @@ class Agent(object):
 
 		return enoughMoney and action >= 0
 
+
 	def auctionProperty(self, state):
 		s = State(self.id, state)
 		opp_id = s.opponentIndex()
@@ -140,6 +141,7 @@ class Agent(object):
 		prevAmount  = 0.55*cost
 
 		return min(baseWilling, max(expctAmount, prevAmount))
+
 
 	def jailDecision(self, state):
 		s = State(self.id, state)
