@@ -169,20 +169,20 @@ class State(object):
 
 
     
-    def calculateMonopolies(self, properties):
+    def calculateMonopolies(self, properties, offset=0):
         monopolies = {}
         for p in properties:
             group = board[p]["monopoly"]
             if (not group in monopolies):
                 monopolies[group] = [[], board[p]["monopoly_size"]]
             monopolies[group][0].append(p)
-        return [monopolies[k][0] for k in monopolies if len(monopolies[k][0])==monopolies[k][1]]
+        return [monopolies[k][0] for k in monopolies if (len(monopolies[k][0]) + offset) >= monopolies[k][1]]
 
-    def agentMonopolies(self):
-        return self.calculateMonopolies(self.agentProperties())
+    def agentMonopolies(self, offset=0):
+        return self.calculateMonopolies(self.agentProperties(), offset=offset)
 
-    def opponentMonopolies(self):
-        return self.calculateMonopolies(self.opponentProperties())
+    def opponentMonopolies(self, offset=0):
+        return self.calculateMonopolies(self.opponentProperties(), offset=offset)
 
     def agentMonopolyCount(self):
         return len(self.calculateMonopolies(self.agentProperties()))
@@ -288,7 +288,8 @@ class State(object):
             vals = [abs(self.properties(use_mod=True)[p]) for p in m]
             minp = min([1 if v==7 else v for v in vals])
             buys = [p for p,v in zip(m, vals) if v==minp and v!=7]
-            purchases += buys
+            if(board[m[0]]['class'] == 'Street'):
+                purchases += buys
         return purchases
 
     def setBuyHouse(self, indices):

@@ -106,6 +106,7 @@ class Agent(object):
 			if(mortgage):
 				return ("M", tuple(mortgage))
 
+			#Sell houses is possible
 			props = sorted(s.seeSellHouse(), key=lambda k: board[k]['price'])		
 			to_sell = []
 			while props and debt > 0:
@@ -119,13 +120,57 @@ class Agent(object):
 
 			return None
 		else:
+			pos_acts = []
+			#I would start buy unmortaging properties
+			#sorted by most to least valuable
+			props = sorted(s.agentMortgagedProperties(), key=lambda k: board[k]['price'], reverse=True)
+			cost = [(board[p]['price'] * .55) for p in props]  
+			unmortgage = []
+			money_to_spend = s.agentLiquidCash() * .40
+			mortgage_cost = 0
 			
+			#Go down the list, see what what amalgamation of properties you can
+			#Unmortage based on some proportion of your cash on hand.
+			#Really should be based on expectation and board state buuuuuut
+			#that's okay 
+			for i in range(1, len(props)+1):
+				if(cost[i] <= money_to_spend)
+					unmortgage.append(props[i])
+					money_to_spend -= cost[i]
+					mortgage_cost += cost[i]
+			if(unmortgage):
+				pos_acts.append((s.opponentIndex(),[(s.agentIndex(), 0, [(p, 1, 1) for p in unmortgage], mortgage_cost, mortgage_cost, 0 )]))
 
-		# Build a world for all buying houses
+			#Grab all properties that we could possibly build on
+			props = sorted(s.seeBuyHouse(), key=lambda k: board[k]['build_cost'])
+			houses_to_buy = []
+			build_cost = 0
+			#Set a buy threshold
+			money_to_spend = s.agentLiquidCash() * .50
+			while(props and money_to_spend > 0):
+				buy = props[0]
+				cost_h = board[buy]['build_cost']//2
+				something = money_to_spend - cost_h
+
+
+				if(something <= money_to_spend):
+					money_to_spend = something
+					houses_to_buy.append(buy)
+					s.setBuyHouse(buy)
+					build_cost += cost_h
+					props = sorted(s.seeBuyHouse(), key=lambda k: board[k]['build_cost'])
+				else:
+					break
+
+			if(houses_to_buy):
+				pos_acts.append((s.opponentIndex(),[(s.agentIndex(), 0, [(p, abs(s.properties()[p])+1, 1) for p in houses_to_buy], build_cost, build_cost, 0)]))
 
 		# Build a world for generating trades
-	
-		# Build a world for unmortgaging
+		opp_props = s.opponentMonopolies(offset=1)
+		if(opp_props):
+			for prop in opp_props:
+				
+
 
 		# Generate the best action
 
