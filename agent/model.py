@@ -46,7 +46,6 @@ class Oracle(object):
 		return reg1 - reg2
 
 	def getValue(self, state, p_id, t_pos, cost, bought):
-		pdb.set_trace()
 		rev = max(state.getRent(p_id, t_pos), state.getRent((p_id+1)%2, t_pos))
 		if(not bought):
 			rev *= -1
@@ -59,6 +58,7 @@ class Oracle(object):
 
 	# modList = [(p_id, [(b_id, s_id, [(prop, val, bought)], c, b_c, s_c),...]),...]
 	def action(self, modList, state, closeToZero=False):
+		pdb.set_trace()
 		modList = [(0, []),] + modList
 		values  = []
 		for index, (p_id, mods) in enumerate(modList, 0):
@@ -70,6 +70,7 @@ class Oracle(object):
 				for b_id, s_id, props, cost, b_cost, s_cost in mods:
 					for p, val, bought in props:
 						value += self.getValue(s_mod, p_id, p, (1.0*cost)/len(props), bought)
+						count += 1
 			else:
 				value = self.getRegression(s_mod)
 			value /= float(max(count, 1))
