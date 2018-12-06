@@ -7,7 +7,7 @@ import pdb
 class RandomWalk(object):
 	
 	def __init__(self, s_len=5, m_len=15, l_len=30):
-		rollNum = 10000
+		rollNum = int(1e6)
 		self.dice = [rand(1, 6) + rand(1, 6) for i in range(rollNum)]
 		self.l_len = l_len
 		self.s_len = s_len
@@ -16,6 +16,7 @@ class RandomWalk(object):
 	def walk(self, player, target):
 		s, m, l = 0, 0, 0
 		roll = lambda c: (c + self.dice.pop()) % 40
+		repl = lambda c: self.dice.insert(0, c)
 		curr = roll(player)
 		prev = player
 		for n in range(self.l_len):
@@ -27,6 +28,8 @@ class RandomWalk(object):
 					m += 1
 			prev = curr
 			curr = roll(curr)
+			repl(curr)
+
 		return (s, m, l)
 
 class Oracle(object):
@@ -90,6 +93,41 @@ class Agent(object):
 
 	def getBMSTDecision(self, state):
 		s = State(self.id, state)
+		debt = s.agentDebt() - s.agentLiquidCash()
+		if(debt > 0):
+			# Mortgage Properties First
+			props = sorted(s.agentUnbuiltProperties(), key=lambda k: board[k]['price'])
+			gains = [board[p]['price']//2 for p in props]
+			mortgage = []
+			for i in range(1, len(props)+1):
+				if(sum(gains[:i]) > debt):
+					mortgage = props[:i]
+					break
+			if(mortgage):
+				return ("M", tuple(mortgage))
+
+			props = sorted(s.seeSellHouse(), key=lambda k: board[k]['price'])		
+			to_sell = []
+			while props and debt > 0:
+				h_sell = props[0]
+				to_sell.append(h_sell)
+				s.setSellHouse(h_sell)
+				debt -= board[h_sell]['build_cost']//2
+				props = sorted(s.seeSellHouse(), key=lambda k: board[k]['price'])		
+			if(to_sell):
+				return ("S", tuple(to_sell))
+
+			return None
+		else:
+			
+
+		# Build a world for all buying houses
+
+		# Build a world for generating trades
+	
+		# Build a world for unmortgaging
+
+		# Generate the best action
 
 	def respondTrade(self, state):
 		s = State(self.id, state)

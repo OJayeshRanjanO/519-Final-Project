@@ -118,7 +118,19 @@ class State(object):
     def agentProperties(self):
         valid = lambda p: same_sign(self.agentSign(), p)
         return [i for i, p in enumerate(self.properties()) if valid(p)]
-    
+
+    def agentMortgagedProperties(self):
+        valid = lambda p: abs(self.properties()[p]) == 7
+        return [i for i in self.agentProperties() if valid(i)]
+
+    def agentUnbuiltProperties(self):
+        valid = lambda p: abs(self.properties()[p]) == 1
+        return [i for i in self.agentProperties() if valid(i)]
+
+    def agentBuiltProperties(self):
+        valid = lambda p: 1 < abs(self.properties()[p]) < 7
+        return [i for i in self.agentProperties() if valid(i)]
+
     def agentBuildingCount(self):
         valid = lambda p: same_sign(self.agentSign(), p) and abs(p) < 7
         return sum([abs(p) - 1 for p in self.properties() if valid(p)])
@@ -130,6 +142,18 @@ class State(object):
     def opponentProperties(self):
         valid = lambda p: same_sign(self.opponentSign(), p)
         return [i for i, p in enumerate(self.properties()) if valid(p)]
+
+    def opponentMortgagedProperties(self):
+        valid = lambda p: abs(self.properties()[p]) == 7
+        return [i for i in self.opponentProperties() if valid(i)]
+
+    def opponentUnbuiltProperties(self):
+        valid = lambda p: abs(self.properties()[p]) == 1
+        return [i for i in self.opponentProperties() if valid(i)]
+
+    def opponentBuiltProperties(self):
+        valid = lambda p: 1 < abs(self.properties()[p]) < 7
+        return [i for i in self.opponentProperties() if valid(i)]
 
     def agentPctOwnership(self):
         return len(self.agentProperties()) / max((1.0*(len(self.agentProperties()) + len(self.opponentProperties()))), 1)
