@@ -190,6 +190,40 @@ class State(object):
     def opponentMonopolyCount(self):
         return len(self.calculateMonopolies(self.opponentProperties()))
 
+    def agentToCompleteMonopoly(self, need=0):
+        oMonopolies = self.opponentMonopolies(offset=10)
+        aMonopolies = self.agentMonopolies(offset=10)
+        c_monoplies = []
+        for o_m in oMonopolies:
+            for a_m in aMonopolies:
+                if(board[o_m[0]]['monopoly'] == board[a_m[0]]['monopoly']):
+                    c_monopolies.append((a_m, o_m))
+
+        needed = []
+        for a, o in zip(c_monopolies):    
+            m_size = board[a[0]]['monopoly_size']
+            if((len(a)+len(o)) == m_size and len(o)==need):         
+                needed.append(o)
+
+        return needed
+
+    def opponentToCompleteMonopoly(self, need=0):
+        oMonopolies = self.opponentMonopolies(offset=10)
+        aMonopolies = self.agentMonopolies(offset=10)
+        c_monoplies = []
+        for o_m in oMonopolies:
+            for a_m in aMonopolies:
+                if(board[o_m[0]]['monopoly'] == board[a_m[0]]['monopoly']):
+                    c_monopolies.append((a_m, o_m))
+
+        needed = []
+        for a, o in zip(c_monopolies):    
+            m_size = board[a[0]]['monopoly_size']
+            if((len(a)+len(o)) == m_size and len(a)==need):         
+                needed.append(a)
+
+        return needed
+                
 
     ## DERIVED FEATURES ABOUT THE GAME
     def housesUsed(self):
@@ -378,3 +412,4 @@ class State(object):
             return self.state[5]
         else:
             return [0, [], 0, []]
+
