@@ -34,6 +34,9 @@ class State(object):
     def opponentSign(self):
         return (-1) ** (self.opponentIndex())
 
+    def playerSign(self, id):
+        return (-1) ** (id)
+
     def positions(self):
         return self.state[2]
 
@@ -291,3 +294,56 @@ class State(object):
         s_mod = copy.deepcopy(self.state)
         s_mod.append([])
         return State(self.iden, s_mod)
+
+    def updateProperty(self, p_id, prop, val, cost):
+        val = abs(val) * self.playerSign(p_id)
+        self.state[1][prop] = val
+        self.state[3][p_id] += -cost
+        
+		# modList = [(p_id, [(b_id, s_id, [(prop, val, bought)], c, b_c, s_c),...]),...]
+    def updateProperties(self, mods):
+        for b_id, s_id, props, c, b_c, s_c in mods:
+            for prop, val, bought in props:
+                p_id = b_id if bought else s_id
+                self.updateProperty(p_id, prop, val, 0)
+            self.state[3][b_id] += -b_c
+            self.state[3][s_id] += -s_c        
+
+    def getRent(self, p_id, prop):
+        val = self.properties()[prop]
+        v = val
+        p_sign = self.playerSign(p_id)
+        if(not v or same_sign(self.playerSign(p_id), v)):
+            return 0
+        v = abs(val)   
+        if(v == 7):
+            return 0
+
+        rent = 0
+        if (v == 1):
+            mon_props = []
+            if(p_id != self.agentIndex()):
+                mon_props = self.agentMonopolies()
+            else:
+                mon_props = self.opponentMonopolies()
+            
+            mon_props = [it for sl in mon_props for it in sl]
+
+            e_type = board[prop]['class']
+            if(e_type == 'Railroad'):
+                cnt = sum([1 for p in [5, 15, 25, 35] if same_sign(val, self.properties()[p])])
+                rent = 25 * (2**(cnt-1))
+            elif(e_type == 'Utility'):
+                rent = 20
+                if(prop in mon_props):
+                    rent *= 2
+            else:
+                rent = board[prop]['rent']
+                if(prop in mon_props):
+                    rent *= 2
+        elif (v == 6):
+            rent = board[prop]['rent_hotel']
+        else:
+            rent = board[prop]['rent_house_' + str(v-1)]
+    
+        return rent                   

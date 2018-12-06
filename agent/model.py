@@ -2,6 +2,7 @@ from agent.stateEngine import *
 import random
 from agent.lookup import board
 from random import randint as rand
+import pdb
 
 class RandomWalk(object):
 	
@@ -24,7 +25,7 @@ class RandomWalk(object):
 					s += 1
 				if(n < self.m_len):
 					m += 1
-			prev = currs
+			prev = curr
 			curr = roll(curr)
 		return (s, m, l)
 
@@ -39,20 +40,21 @@ class Oracle(object):
 		return tuple(vals)
 
 	def getRegression(self, state):
-		regressors = [0, 1]
-		reg1 = regressors[self.agentIndex()]-state.agentNetWealth()
-		reg2 = regressors[self.opponentIndex()]-state.opponentNetWealth()
+		regressors = [1, 1]
+		reg1 = regressors[state.agentIndex()]-state.agentNetWealth()
+		reg2 = regressors[state.opponentIndex()]-state.opponentNetWealth()
 		return reg1 - reg2
 
 	def getValue(self, state, p_id, t_pos, cost, bought):
+		pdb.set_trace()
 		rev = max(state.getRent(p_id, t_pos), state.getRent((p_id+1)%2, t_pos))
 		if(not bought):
 			rev *= -1
 		
-		p_pos = state.positions()[p_ind]
+		p_pos = state.positions()[p_id]
 		s,m,l = self.getExpectations(state, p_pos, t_pos, rev, cost)
 
-		rgrss  = self.getRegresion(state)
+		rgrss  = self.getRegression(state)
 		return s + .75*m + .75*.75*l + rgrss
 
 	# modList = [(p_id, [(b_id, s_id, [(prop, val, bought)], c, b_c, s_c),...]),...]
@@ -64,10 +66,13 @@ class Oracle(object):
 			s_mod.updateProperties(mods)
 			value = 0
 			count = 0
-			for b_id, s_id, props, cost, b_cost, s_cost in mods:
-				for p, val, bought in props:
-					value += self.getValue(s_mod, p_id, p, (1.0*cost)/len(props), bought)
-			value /= float(count)
+			if(index > 0):
+				for b_id, s_id, props, cost, b_cost, s_cost in mods:
+					for p, val, bought in props:
+						value += self.getValue(s_mod, p_id, p, (1.0*cost)/len(props), bought)
+			else:
+				value = self.getRegression(s_mod)
+			value /= float(max(count, 1))
 			values.append((index, value))
 	
 		values = sorted(values, key=lambda k: k[1], reverse=True)
@@ -81,7 +86,7 @@ class Oracle(object):
 class Agent(object):
 	def __init__(self, id):
 		self.id = id
-		self.oracle = Oracle()
+		self.oracle = Oracle(id)
 
 	def getBMSTDecision(self, state):
 		s = State(self.id, state)
@@ -111,7 +116,7 @@ class Agent(object):
 		agent_id = s.agentIndex()
 
 		enoughMoney = s.agentLiquidCash() > cost
-		mods = [(opp_id, [(agent_id, 0, [(ind, 1)], cost, cost, 0)])]
+		mods = [(opp_id, [(agent_id, 0, [(ind, 1, 1)], cost, cost, 0)])]
 		action = self.oracle.action(mods, s)
 
 		return enoughMoney and action >= 0
