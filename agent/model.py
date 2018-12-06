@@ -81,7 +81,7 @@ class Oracle(object):
 class Agent(object):
 	def __init__(self, id):
 		self.id = id
-    self.oracle = Oracle()
+		self.oracle = Oracle()
 
 	def getBMSTDecision(self, state):
 		s = State(self.id, state)
