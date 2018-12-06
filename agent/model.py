@@ -29,39 +29,54 @@ class RandomWalk(object):
 		return (s, m, l)
 
 class Oracle(object):
-	def getExpected_Short(self, state):
-		return 10
+	def __init__(self, player_index):
+		self.walk = RandomWalk()
+		self.agent = player_index
 
-	def getExpected_Medium(self, state):
-		return 10
-
-	def getExpected_Long(self, state):
-		return 10
+	def getExpectations(self, state, origin, target, revenue, cost):
+		vals = self.walk.walk(origin, target)
+		vals = [(.6*v*revenue)-cost for v in vals]
+		return tuple(vals)
 
 	def getRegression(self, state):
-		return state
+		regressors = [0, 1]
+		reg1 = regressors[self.agentIndex()]-state.agentNetWealth()
+		reg2 = regressors[self.opponentIndex()]-state.opponentNetWealth()
+		return reg1 - reg2
 
-	def getComparison(self, state1, state2):
-		v1 = self.getRegression(state1)
-		v2 = self.getRegression(state2)
-		return v1 - v2
+	def getValue(self, state, p_id, t_pos, cost, bought):
+		rev = max(state.getRent(p_id, t_pos), state.getRent((p_id+1)%2, t_pos))
+		if(not bought):
+			rev *= -1
+		
+		p_pos = state.positions()[p_ind]
+		s,m,l = self.getExpectations(state, p_pos, t_pos, rev, cost)
 
-	def getValue(self, state):
-		short  = self.getExpected_Short(state)
-		medium = self.getExpected_Medium(state)
-		long   = self.getExpected_Long(state)
 		rgrss  = self.getRegresion(state)
-		return short + medium + long + rgrss
+		return s + .75*m + .75*.75*l + rgrss
 
-	def getComparison(self, state, state_prev):
-		return self.getValue(state) - self.getValue(state_prev)
-
-	def action(self, modList, original_state):
-		modList = [original_state] + modList
-		f = lambda v: self.getValue(v, original_state)
-		vals = [(i, f(m)) for i, m in enumerate(modList, 0)]
-		vals = sorted(vals, key=lambda k: k[1], reverse=True)
-		return vals[0][0]
+	# modList = [(p_id, [(b_id, s_id, [(prop, val, bought)], c, b_c, s_c),...]),...]
+	def action(self, modList, state, closeToZero=False):
+		modList = [(0, []),] + modList
+		values  = []
+		for index, (p_id, mods) in enumerate(modList, 0):
+			s_mod = state.clone()
+			s_mod.updateProperties(mods)
+			value = 0
+			count = 0
+			for b_id, s_id, props, cost, b_cost, s_cost in mods:
+				for p, val, bought in props:
+					value += self.getValue(s_mod, p_id, p, (1.0*cost)/len(props), bought)
+			value /= float(count)
+			values.append((index, value))
+	
+		values = sorted(values, key=lambda k: k[1], reverse=True)
+		if(closeToZero):
+			for (ind, (k, v)) in enumerate(values, 0):
+				if(k==0):
+					return ind-1
+		else:
+			return values[0][0] - 1
 
 class Agent(object):
 	def __init__(self, id):
@@ -73,22 +88,66 @@ class Agent(object):
 
 	def respondTrade(self, state):
 		s = State(self.id, state)
+		c_offer, p_offer, c_req, p_req = s.getPhaseInfo()
+		opp_id = s.opponentIndex()
+		agent_id = s.agentIndex()
 
+		mods = []
+		vals =  [(p, 1, 1) for p in p_offer]
+		vals += [(p, 1, 0) for p in p_req]
+		mod = (opp_id, [(agent_id, opp_id, vals, c_offer-c_req, c_req, c_offer)])
+		
+		enoughMoney = s.agentLiquidCash() > (c_offer - c_req)
+		action = self.oracle.action([mod], s)
+
+		return enoughMoney and action >= 0
+
+		
 	def buyProperty(self, state):
 		s = State(self.id, state)
 		cost = s.getPhaseInfo()
 		ind = s.getBuyPropertyIndex()
+		opp_id = s.opponentIndex()
+		agent_id = s.agentIndex()
 
-		if(s.agentAgentLiquidCash() > cost):
-			mod_s = s.clone()
-			mod_s.agentBuyProperty(ind, cost)
-      return self.oracle.action([mod_s], s) > 0
+		enoughMoney = s.agentLiquidCash() > cost
+		mods = [(opp_id, [(agent_id, 0, [(ind, 1)], cost, cost, 0)])]
+		action = self.oracle.action(mods, s)
+
+		return enoughMoney and action >= 0
 
 	def auctionProperty(self, state):
 		s = State(self.id, state)
+		opp_id = s.opponentIndex()
+		agent_id = s.agentIndex()
+		cost = s.getPhaseInfo()
+		ind = s.getBuyPropertyIndex()
+		
+		mods   = []
+		amtMod = 10
+		pctMod = 0.1
+		for i in range(1, amtMod+1):
+			c = cost*(i*pctMod)
+			mods.append((opp_id, [(agent_id, 0, [(ind, 1)])], c, c, 0))
+
+		baseWilling = self.agentLiquidCash()*0.3
+		expctAmount = self.oracle.action(mods, s, closeToZero=True)*pctMod*cost
+		prevAmount  = 0.55*cost
+
+		return min(baseWilling, max(expctAmount, prevAmount))
 
 	def jailDecision(self, state):
 		s = State(self.id, state)
+		j_thresh = 0.3
+		o_ratio = len(s.opponentProperties()) / 28.0
+		if(o_ratio < j_thresh):
+			card = s.agentJailCards()
+			if(card):
+				return ("C", card)
+			elif(s.agentLiquidCash() > 200):
+				return ("P", )
+		return ("R", )
+			
 
 	def receiveState(self, state):
 		s = State(self.id, state)
