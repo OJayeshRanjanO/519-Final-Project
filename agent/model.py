@@ -3,6 +3,8 @@ import random
 from agent.lookup import board
 from random import randint as rand
 import pdb
+import csv
+from os.path import abspath, exists
 
 class RandomWalk(object):
 	
@@ -12,6 +14,20 @@ class RandomWalk(object):
 		self.l_len = l_len
 		self.s_len = s_len
 		self.m_len = m_len
+		self.regression_vectors = []
+
+
+	def loadRegressors(self):
+		f_path = abspath("weight_vectors.csv")
+		if exists(f_path):
+			file = open(f_path)
+			reader = csv.reader(file, delimieter=",")
+
+			for row in reader:
+				self.regression_vectors.append(row)
+
+			file.close()
+
 
 	def walk(self, player, target):
 		s, m, l = 0, 0, 0
@@ -44,6 +60,11 @@ class Oracle(object):
 
 	def getRegression(self, state):
 		regressors = [1, 1]
+
+
+		# reg1Extract = state.state +
+
+
 		reg1 = regressors[state.agentIndex()]-state.agentNetWealth()
 		reg2 = regressors[state.opponentIndex()]-state.opponentNetWealth()
 		return reg1 - reg2
@@ -166,17 +187,71 @@ class Agent(object):
 				pos_acts.append((s.opponentIndex(),[(s.agentIndex(), 0, [(p, abs(s.properties()[p])+1, 1) for p in houses_to_buy], build_cost, build_cost, 0)]))
 
 		# Build a world for generating trades
-		opp_props = s.opponentMonopolies(offset=1)
-		if(opp_props):
-			for prop in opp_props:
+		needed_props = s.agentToCompleteMonopoly(need=1)
+		#If the opponent has a property that completes a monopoly
+		current_monies = s.agentLiquidCash() * 0.6
+
+		toTrade = [0, [], 0, []]
+		if(needed_props):
+			allotment = current_monies * .6
+			how_many = len(needed_props)
+			props = sorted([p[0] for p in needed_props], key=lambda k: board[k]['price'])
+			if(props):
+				props = props[0]
+				costs = [board[p]['price'] for p in props][0]
+				if(costs <= allotment):
+					toTrade[3].append(props)
+					toTrade[0] += costs
+					current_monies += -costs
+
+		else:
+			allotment = current_monies *.15
+			opp_monopolies = s.opponentMonopolies()
 				
+			if(opp_monopolies):
+				opp_monopolies = opp_monopolies[0][0]
+				toTrade[3].append(opp_monopolies)
+				toTrade[0] = allotment
+				current_monies -= allotment
+			else:
+				opp_needed = s.opponentToCompleteMonopoly(need=1)
+				props = sorted([p[0] for p in needed_props], reverst=True, key=lambda k: board[k]['price'])
+				if(props):
+					props = props[0]
+					toTrade[1].append(props)
+					toTrade[2] = s.opponentLiquidCash()*.8
+
+		c_offer, p_offer, c_req, p_req = toTrade
+		vals =  [(p, 1, 0) for p in p_offer]
+		vals += [(p, 1, 1) for p in p_req]
+		opp_id = s.opponentIndex()
+		agent_id = s.agentIndex()
+		mod = (opp_id, [(agent_id, opp_id, vals, c_req-c_offer, c_offer, c_req)])
+		pos_acts.append(mod)
 
 
 		# Generate the best action
+		action = self.oracle.action(pos_acts, s)
+		if(action < 0):
+			return None
+		elif(action == 0):
+			return ("M", tuple(unmortgage))
+		elif(action == 1):
+			return ("B", tuple(houses_to_buy))
+		else:
+			return tuple(["T"] + toTrade)
+
 
 	def respondTrade(self, state):
 		s = State(self.id, state)
 		c_offer, p_offer, c_req, p_req = s.getTradeInfo()
+
+		c_offer += sum([50 for p in p_offer if p >= 40])
+		c_req   += sum([50 for p in p_req if p >= 40])
+
+		p_offer = [p for p in p_offer if p < 40]
+		p_req   = [p for p in p_req if p < 40]
+
 		opp_id = s.opponentIndex()
 		agent_id = s.agentIndex()
 
