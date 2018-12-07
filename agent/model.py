@@ -2,7 +2,6 @@ from agent.stateEngine import *
 import random
 from agent.lookup import board
 from random import randint as rand
-import pdb
 import csv
 import collections
 from os.path import abspath, exists
@@ -15,19 +14,6 @@ class RandomWalk(object):
 		self.l_len = l_len
 		self.s_len = s_len
 		self.m_len = m_len
-		self.regression_vectors = []
-
-
-	def loadRegressors(self):
-		f_path = abspath("weight_vectors.csv")
-		if exists(f_path):
-			file = open(f_path)
-			reader = csv.reader(file, delimieter=",")
-
-			for row in reader:
-				self.regression_vectors.append(row)
-
-			file.close()
 
 
 	def walk(self, player, target):
@@ -53,7 +39,23 @@ class RandomWalk(object):
 class Oracle(object):
 	def __init__(self, player_index):
 		self.walk = RandomWalk()
+		self.regression_vectors = []
+		self.loadRegressors()
 		self.agent = player_index
+
+
+	def loadRegressors(self):
+		f_path = abspath("agent/weight_vectors.csv")
+		if exists(f_path):
+			file = open(f_path)
+			reader = csv.reader(file, delimiter=",")
+
+			for row in reader:
+				row = [float(r) for r in row][2:]
+				self.regression_vectors.append(row)
+
+			file.close()
+
 
 	def getExpectations(self, state, origin, target, revenue, cost):
 		vals = self.walk.walk(origin, target)
@@ -61,11 +63,15 @@ class Oracle(object):
 		return tuple(vals)
 
 	def getRegression(self, state):
-		regressors = [1, 1]
+		ftr = state.genFeatures()
+		reg = self.regression_vectors
 
-		reg1 = regressors[state.agentIndex()]-state.agentNetWealth()
-		reg2 = regressors[state.opponentIndex()]-state.opponentNetWealth()
-		return reg1 - reg2
+		regressors = [sum([_f*_r for _f, _r in zip(f, r)]) for f, r in zip(ftr, reg)]
+		
+		totalWealth = state.totalWealth()
+		reg1 = regressors[state.agentIndex()]-(state.agentNetWealth()/float(max(1, totalWealth)))
+		reg2 = regressors[state.opponentIndex()]-(state.opponentNetWealth()/float(max(1, totalWealth)))
+		return totalWealth * (reg1 - reg2)
 
 	def getValue(self, state, p_id, t_pos, cost, bought):
 		rev = max(state.getRent(p_id, t_pos), state.getRent((p_id+1)%2, t_pos))

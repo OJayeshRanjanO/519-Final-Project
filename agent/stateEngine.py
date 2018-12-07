@@ -293,13 +293,16 @@ class State(object):
 
     def genFeatures(self):
         computed_feats = self.extract_features()
-        pdb.set_trace()
         flatten = lambda l: l if type(l)==int else list(itertools.chain.from_iterable(l))
         state = self.clone().state
-        state.pop(5), state.pop(4)        
+        state.pop(5), state.pop(4)
         state = [state[0]] + flatten(state[1:])
-        state = state[:1] + state[42:] + computed_feats
-        print(len(state))
+        state = state[:1] + state[41:] + computed_feats
+        p1_st = state[::]
+        p1_st.pop(10)
+        p2_st = state[::]
+        p2_st.pop(11)
+        return (p1_st, p2_st)
     
     def extract_headers(self):
         header =  ['agent_netwealth_1', 'agent_netwealth_2']
