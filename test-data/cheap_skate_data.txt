@@ -1,0 +1,7 @@
+CheapSkate 429 AssetHoarder 571
+CheapSkate 950 Probabilistic 50
+CheapSkate 960 Drunk 40
+CheapSkate 815 Kid 185
+CheapSkate 519 Flagship 481
+CheapSkate 470 CheapSkate 530
+CheapSkate 456 OurModel 544

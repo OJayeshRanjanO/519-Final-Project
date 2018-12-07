@@ -1,0 +1,7 @@
+OurModel 605 CheapSkate 395
+OurModel 970 Probabilistic 30
+OurModel 982 Drunk 18
+OurModel 872 Kid 128
+OurModel 724 Flagship 276
+OurModel 579 AssetHoarder 421
+OurModel 490 OurModel 510

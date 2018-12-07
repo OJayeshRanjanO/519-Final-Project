@@ -1,0 +1,7 @@
+AssetHoarder 579 CheapSkate 421
+AssetHoarder 922 Probabilistic 78
+AssetHoarder 937 Drunk 63
+AssetHoarder 695 Kid 305
+AssetHoarder 582 Flagship 418
+AssetHoarder 439 AssetHoarder 561
+AssetHoarder 497 OurModel 503
