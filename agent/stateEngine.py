@@ -403,7 +403,7 @@ class State(object):
         elif (v == 6):
             rent = board[prop]['rent_hotel']
         else:
-            rent = board[prop]['rent_house_' + str(v-1)]
+            rent = board[prop]['rent_house_' + str(int(v)-1)]
     
         return rent                   
 

@@ -4,12 +4,13 @@ from agent.lookup import board
 from random import randint as rand
 import pdb
 import csv
+import collections
 from os.path import abspath, exists
 
 class RandomWalk(object):
 	
 	def __init__(self, s_len=5, m_len=15, l_len=30):
-		rollNum = int(1e6)
+		rollNum = int(1e2)
 		self.dice = [rand(1, 6) + rand(1, 6) for i in range(rollNum)]
 		self.l_len = l_len
 		self.s_len = s_len
@@ -34,6 +35,7 @@ class RandomWalk(object):
 		roll = lambda c: (c + self.dice.pop()) % 40
 		repl = lambda c: self.dice.insert(0, c)
 		curr = roll(player)
+		repl(curr)
 		prev = player
 		for n in range(self.l_len):
 			if(prev < target < curr):
@@ -60,10 +62,6 @@ class Oracle(object):
 
 	def getRegression(self, state):
 		regressors = [1, 1]
-
-
-		# reg1Extract = state.state +
-
 
 		reg1 = regressors[state.agentIndex()]-state.agentNetWealth()
 		reg2 = regressors[state.opponentIndex()]-state.opponentNetWealth()
@@ -137,7 +135,7 @@ class Agent(object):
 				debt -= board[h_sell]['build_cost']//2
 				props = sorted(s.seeSellHouse(), key=lambda k: board[k]['price'])		
 			if(to_sell):
-				return ("S", tuple(to_sell))
+				return ("S", collections.Counter(to_sell).most_common())
 
 			return None
 		else:
@@ -154,8 +152,8 @@ class Agent(object):
 			#Unmortage based on some proportion of your cash on hand.
 			#Really should be based on expectation and board state buuuuuut
 			#that's okay 
-			for i in range(1, len(props)+1):
-				if(cost[i] <= money_to_spend)
+			for i in range(0, len(props)):
+				if(cost[i] <= money_to_spend):
 					unmortgage.append(props[i])
 					money_to_spend -= cost[i]
 					mortgage_cost += cost[i]
@@ -198,7 +196,7 @@ class Agent(object):
 			props = sorted([p[0] for p in needed_props], key=lambda k: board[k]['price'])
 			if(props):
 				props = props[0]
-				costs = [board[p]['price'] for p in props][0]
+				costs = board[props]['price']
 				if(costs <= allotment):
 					toTrade[3].append(props)
 					toTrade[0] += costs
@@ -215,7 +213,7 @@ class Agent(object):
 				current_monies -= allotment
 			else:
 				opp_needed = s.opponentToCompleteMonopoly(need=1)
-				props = sorted([p[0] for p in needed_props], reverst=True, key=lambda k: board[k]['price'])
+				props = sorted([p[0] for p in needed_props], reverse=True, key=lambda k: board[k]['price'])
 				if(props):
 					props = props[0]
 					toTrade[1].append(props)
@@ -229,17 +227,17 @@ class Agent(object):
 		mod = (opp_id, [(agent_id, opp_id, vals, c_req-c_offer, c_offer, c_req)])
 		pos_acts.append(mod)
 
-
 		# Generate the best action
 		action = self.oracle.action(pos_acts, s)
 		if(action < 0):
 			return None
 		elif(action == 0):
-			return ("M", tuple(unmortgage))
+			return ("M", unmortgage)
 		elif(action == 1):
-			return ("B", tuple(houses_to_buy))
+			
+			return ("B", collections.Counter(houses_to_buy).most_common())
 		else:
-			return tuple(["T"] + toTrade)
+			return ["T"] + toTrade
 
 
 	def respondTrade(self, state):
@@ -298,7 +296,9 @@ class Agent(object):
 		expctAmount = self.oracle.action(mods, s, closeToZero=True)*pctMod*cost
 		prevAmount  = 0.55*cost
 
-		return int((expctAmount > 0) * (min(baseWilling, max(expctAmount, prevAmount))))
+		cost = min(s.opponentLiquidCash(), min(baseWilling, max(expctAmount, prevAmount)))
+
+		return int((expctAmount > 0) * (cost))
 
 
 	def jailDecision(self, state):
