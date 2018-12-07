@@ -1,5 +1,7 @@
 from agent.lookup import board
+import pdb
 import copy
+import itertools
 
 
 def same_sign(x, y):
@@ -288,6 +290,16 @@ class State(object):
         output += [self.agentPctOwnership(), self.opponentPctOwnership()]
         output += [self.agentPctBuildingOwnership(), self.opponentPctBuildingOwnership()]
         return output
+
+    def genFeatures(self):
+        computed_feats = self.extract_features()
+        pdb.set_trace()
+        flatten = lambda l: l if type(l)==int else list(itertools.chain.from_iterable(l))
+        state = self.clone().state
+        state.pop(5), state.pop(4)        
+        state = [state[0]] + flatten(state[1:])
+        state = state[:1] + state[42:] + computed_feats
+        print(len(state))
     
     def extract_headers(self):
         header =  ['agent_netwealth_1', 'agent_netwealth_2']
