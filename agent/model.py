@@ -1,3 +1,4 @@
+import pdb
 from agent.stateEngine import *
 import random
 from agent.lookup import board
@@ -59,7 +60,7 @@ class Oracle(object):
 
 	def getExpectations(self, state, origin, target, revenue, cost):
 		vals = self.walk.walk(origin, target)
-		vals = [(.6*v*revenue)-cost for v in vals]
+		vals = [(v*revenue)-(cost//2) for v in vals]
 		return tuple(vals)
 
 	def getRegression(self, state):
@@ -71,7 +72,7 @@ class Oracle(object):
 		totalWealth = state.totalWealth()
 		reg1 = regressors[state.agentIndex()]-(state.agentNetWealth()/float(max(1, totalWealth)))
 		reg2 = regressors[state.opponentIndex()]-(state.opponentNetWealth()/float(max(1, totalWealth)))
-		return totalWealth * (reg1 - reg2)
+		return totalWealth//4 * (reg1 - reg2)
 
 	def getValue(self, state, p_id, t_pos, cost, bought):
 		rev = max(state.getRent(p_id, t_pos), state.getRent((p_id+1)%2, t_pos))
@@ -82,7 +83,7 @@ class Oracle(object):
 		s,m,l = self.getExpectations(state, p_pos, t_pos, rev, cost)
 
 		rgrss  = self.getRegression(state)
-		return s + .75*m + .75*.75*l + rgrss
+		return .75*.75*s + .75*m + l + rgrss
 
 	# modList = [(p_id, [(b_id, s_id, [(prop, val, bought)], c, b_c, s_c),...]),...]
 	def action(self, modList, state, closeToZero=False):
@@ -271,17 +272,18 @@ class Agent(object):
 
 		
 	def buyProperty(self, state):
+		pdb.set_trace()
 		s = State(self.id, state)
 		cost = s.getPhaseInfo()
 		ind = s.getBuyPropertyIndex()
 		opp_id = s.opponentIndex()
 		agent_id = s.agentIndex()
 
-		enoughMoney = s.agentLiquidCash() > cost
+		enoughMoney = s.agentLiquidCash()*0.4 > cost
 		mods = [(opp_id, [(agent_id, 0, [(ind, 1, 1)], cost, cost, 0)])]
 		action = self.oracle.action(mods, s)
 
-		return enoughMoney and action >= 0
+		return enoughMoney and abs(action) >= 0 
 
 
 	def auctionProperty(self, state):
