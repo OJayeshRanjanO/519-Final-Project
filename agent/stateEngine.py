@@ -193,14 +193,14 @@ class State(object):
     def agentToCompleteMonopoly(self, need=0):
         oMonopolies = self.opponentMonopolies(offset=10)
         aMonopolies = self.agentMonopolies(offset=10)
-        c_monoplies = []
+        c_monopolies = []
         for o_m in oMonopolies:
             for a_m in aMonopolies:
                 if(board[o_m[0]]['monopoly'] == board[a_m[0]]['monopoly']):
                     c_monopolies.append((a_m, o_m))
 
         needed = []
-        for a, o in zip(c_monopolies):    
+        for a, o in c_monopolies:    
             m_size = board[a[0]]['monopoly_size']
             if((len(a)+len(o)) == m_size and len(o)==need):         
                 needed.append(o)
@@ -210,14 +210,14 @@ class State(object):
     def opponentToCompleteMonopoly(self, need=0):
         oMonopolies = self.opponentMonopolies(offset=10)
         aMonopolies = self.agentMonopolies(offset=10)
-        c_monoplies = []
+        c_monopolies = []
         for o_m in oMonopolies:
             for a_m in aMonopolies:
                 if(board[o_m[0]]['monopoly'] == board[a_m[0]]['monopoly']):
                     c_monopolies.append((a_m, o_m))
 
         needed = []
-        for a, o in zip(c_monopolies):    
+        for a, o in c_monopolies:    
             m_size = board[a[0]]['monopoly_size']
             if((len(a)+len(o)) == m_size and len(a)==need):         
                 needed.append(a)
