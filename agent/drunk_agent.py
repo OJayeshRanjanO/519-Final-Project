@@ -59,15 +59,15 @@ class Agent(object):
                     for eachProp in eachMonopoly:
                         v = all_properties[eachProp]
                         if abs(v) == 1:#Unimproved property
-                            cost = (board[v])['price'] * self._dickness
+                            cost = (board[eachProp])['price'] * self._dickness
                             if money * self._buy_prop >= cost:
                                 return ["T",cost,[eachProp],0,[]]
                         elif 1 < abs(v) < 7:
-                            cost = ((board[v])['price'] + ((board[v])['build_cost'] * abs(v)-1)) *  self._dickness
+                            cost = ((board[eachProp])['price'] + ((board[eachProp])['build_cost'] * abs(v)-1)) *  self._dickness
                             if money * self._buy_prop >= cost:
                                 return ["T",cost,[eachProp],0,[]]
-                        elif abs(eachProp) == 7:
-                            cost = ((board[v])['price'] * 2 * 1.1) *  self._dickness
+                        elif abs(v) == 7:
+                            cost = ((board[eachProp])['price'] * 2 * 1.1) *  self._dickness
                             if money * self._buy_prop >= cost:
                                 return ["T",cost,[eachProp],0,[]]
 
@@ -79,11 +79,11 @@ class Agent(object):
                         if money * self._buy_prop >= cost:
                             return ["T",cost,[eachProp],0,[]]
                     elif 1 < abs(v) < 7:
-                        cost = ((board[v])['price'] + ((board[v])['build_cost'] * abs(v) - 1)) * self._dickness
+                        cost = ((board[eachProp])['price'] + ((board[eachProp])['build_cost'] * abs(v) - 1)) * self._dickness
                         if money * self._buy_prop >= cost:
                             return ["T",cost,[eachProp],0,[]]
-                    elif abs(eachProp) == 7:
-                        cost = ((board[v])['price'] * 2 * 1.1) * self._dickness
+                    elif abs(v) == 7:
+                        cost = ((board[eachProp])['price'] * 2 * 1.1) * self._dickness
                         if money * self._buy_prop >= cost:
                             return ["T",cost,[eachProp],0,[]]
         return None
