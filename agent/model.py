@@ -175,6 +175,8 @@ class Agent(object):
 			#Set a buy threshold
 			money_to_spend = s.agentLiquidCash() * .50
 			while(props and money_to_spend > 0):
+				pdb.set_trace()
+
 				buy = props[0]
 				cost_h = board[buy]['build_cost']//2
 				something = money_to_spend - cost_h
@@ -185,7 +187,7 @@ class Agent(object):
 					houses_to_buy.append(buy)
 					s.setBuyHouse(buy)
 					build_cost += cost_h
-					props = sorted(s.seeBuyHouse(), key=lambda k: board[k]['build_cost'])
+					props = sorted(s.seeBuyHouse(), key=lambda k: (abs(s.properties()[k]), board[k]['build_cost']))
 				else:
 					break
 
