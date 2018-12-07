@@ -116,6 +116,7 @@ class Agent(object):
 	def __init__(self, id):
 		self.id = id
 		self.oracle = Oracle(id)
+		self.t_turn = -1
 
 	def getBMSTDecision(self, state):
 		s = State(self.id, state)
@@ -232,7 +233,8 @@ class Agent(object):
 		opp_id = s.opponentIndex()
 		agent_id = s.agentIndex()
 		mod = (opp_id, [(agent_id, opp_id, vals, c_req-c_offer, c_offer, c_req)])
-		pos_acts.append(mod)
+		if(self.t_turn < s.currentTurnNumber()):
+			pos_acts.append(mod)
 
 		# Generate the best action
 		action = self.oracle.action(pos_acts, s)
@@ -241,9 +243,9 @@ class Agent(object):
 		elif(action == 0):
 			return ("M", unmortgage)
 		elif(action == 1):
-			
 			return ("B", collections.Counter(houses_to_buy).most_common())
-		else:
+		elif(action == 2):
+			self.t_turn = s.currentTurnNumber()
 			return ["T"] + toTrade
 
 
@@ -272,14 +274,14 @@ class Agent(object):
 
 		
 	def buyProperty(self, state):
-		pdb.set_trace()
+		#pdb.set_trace()
 		s = State(self.id, state)
 		cost = s.getPhaseInfo()
 		ind = s.getBuyPropertyIndex()
 		opp_id = s.opponentIndex()
 		agent_id = s.agentIndex()
 
-		enoughMoney = s.agentLiquidCash()*0.4 > cost
+		enoughMoney = s.agentLiquidCash()*0.6 > cost
 		mods = [(opp_id, [(agent_id, 0, [(ind, 1, 1)], cost, cost, 0)])]
 		action = self.oracle.action(mods, s)
 
