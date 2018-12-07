@@ -169,7 +169,7 @@ class Agent(object):
 				pos_acts.append((s.opponentIndex(),[(s.agentIndex(), 0, [(p, 1, 1) for p in unmortgage], mortgage_cost, mortgage_cost, 0 )]))
 
 			#Grab all properties that we could possibly build on
-			props = sorted(s.seeBuyHouse(), key=lambda k: board[k]['build_cost'])
+			props = sorted(s.seeBuyHouse(), key=lambda k: (abs(s.properties()[k]), board[k]['build_cost']))
 			houses_to_buy = []
 			build_cost = 0
 			#Set a buy threshold
